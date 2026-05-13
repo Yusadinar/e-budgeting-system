@@ -1,0 +1,19 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:8000/login",
+  "loginUser": "susan.anggraeni@establish.dev",
+  "loginPassword": "password",
+  "executionArgs": {
+    "projectName": "e-budgeting",
+    "projectPath": "c:\\xampp\\htdocs\\e-budgeting",
+    "testIds": [],
+    "additionalInstruction": "Fokus pada pengetesan alur login (sebagai superadmin dan user biasa) dan pastikan dashboard memuat semua statistik dengan benar. Periksa apakah method isDirector() sudah bekerja dan tidak ada lagi error 'Call to undefined method'. Pastikan juga halaman Tracking Approval bisa dibuka tanpa error syntax.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-H0vSzBvDVu3T4DB8AYodRlewVpKnWL128DB1o6a4-2qsBRLqiMxdVHCupvlloSTNSWb-ARpj0sO4h6clh7GZBv4Tr9NT90mKRKrMU30Mf7XzIHjVaYIlVC5uwuaY6KxAhWU"
+    }
+  },
+  "serverPort": 60106
+}

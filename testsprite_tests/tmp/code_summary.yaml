@@ -1,0 +1,78 @@
+version: "2"
+type: frontend
+tech_stack:
+  - PHP
+  - Laravel
+  - Blade Templates
+  - Tailwind CSS
+  - Vite
+routes:
+  - path: /login
+    file: resources/views/auth/login.blade.php
+    auth_required: false
+    description: User login page
+  - path: /dashboard
+    file: app/Http/Controllers/DashboardController.php
+    auth_required: true
+    description: User dashboard overview
+  - path: /superadmin
+    file: app/Http/Controllers/SuperAdmin/DashboardController.php
+    auth_required: true
+    description: Superadmin dashboard
+  - path: /superadmin/users
+    file: app/Http/Controllers/SuperAdmin/UserController.php
+    auth_required: true
+    description: Manage users
+  - path: /superadmin/departments
+    file: app/Http/Controllers/SuperAdmin/DepartmentController.php
+    auth_required: true
+    description: Manage departments
+  - path: /pengajuan
+    file: app/Http/Controllers/PengajuanController.php
+    auth_required: true
+    description: Create and view budget submissions
+  - path: /tracking
+    file: app/Http/Controllers/TrackingController.php
+    auth_required: true
+    description: Track submission status
+features:
+  - name: User Authentication
+    description: Secure login and registration system
+    files:
+      - app/Http/Controllers/Auth/AuthenticatedSessionController.php
+      - resources/views/auth/login.blade.php
+    entry_route: /login
+    user_interactions:
+      - Enter email and password
+      - Click login button
+      - Redirect to dashboard upon success
+    api_calls:
+      - method: POST
+        endpoint: /login
+    auth_required: false
+  - name: Dashboard Statistics
+    description: Overview of budget and user counts
+    files:
+      - app/Http/Controllers/DashboardController.php
+      - resources/views/dashboard.blade.php
+    entry_route: /dashboard
+    user_interactions:
+      - View total users
+      - View budget plans vs used
+      - View active proposals
+    auth_required: true
+  - name: Budget Submission Flow
+    description: Multi-step process to submit budget requests
+    files:
+      - app/Http/Controllers/PengajuanController.php
+      - resources/views/pengajuan/index.blade.php
+    entry_route: /pengajuan
+    user_interactions:
+      - Create PPBJ request
+      - Add Proposal Harga (Price Proposal)
+      - Create Internal Agreement
+    api_calls:
+      - method: POST
+        endpoint: /pengajuan/buat
+    auth_required: true
+known_limitations: []
