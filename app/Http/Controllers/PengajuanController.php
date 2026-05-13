@@ -146,6 +146,13 @@ class PengajuanController extends Controller
             ->where('fiscal_year', now()->year)
             ->firstOrFail();
 
+        if (! $budget->isWithinBudget((float) $validated['final_nominal'])) {
+            return back()->withErrors([
+                'final_nominal' => 'Nominal melebihi sisa pagu anggaran ('
+                    . number_format($budget->remaining, 2, ',', '.') . ').',
+            ])->withInput();
+        }
+
         DB::transaction(function () use ($validated, $proposalHarga, $budget, $user) {
             $ia = InternalAgreement::create([
                 'ph_id'         => $proposalHarga->id,
