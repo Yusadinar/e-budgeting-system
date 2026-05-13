@@ -42,6 +42,15 @@ class PengajuanController extends Controller
             'jenis_pengeluaran' => ['required', 'in:FR,IR,IO'],
         ]);
 
+        $user = Auth::user();
+        $budgetExists = AnnualBudget::where('dept_id', $user->dept_id)
+            ->where('fiscal_year', now()->year)
+            ->exists();
+
+        if (! $budgetExists) {
+            return back()->with('warning', 'Departemen Anda belum memiliki pagu anggaran untuk tahun ini. Silakan hubungi Kepala Departemen Anda untuk melakukan input budget terlebih dahulu.');
+        }
+
         $ppbj = Ppbj::create([
             'user_id'           => Auth::id(),
             'jenis_pengeluaran' => $validated['jenis_pengeluaran'],
