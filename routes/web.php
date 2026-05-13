@@ -108,6 +108,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/buat', [PengajuanController::class, 'storePpbj'])
             ->name('store-ppbj');
 
+        // Detail PPBJ (printable document view)
+        Route::get('/{ppbj}/detail', [PengajuanController::class, 'showPpbj'])
+            ->name('show-ppbj');
+
         // Step 2 — Proposal Harga
         // {ppbj} = ID PPBJ yang baru dibuat di step 1
         Route::get('/{ppbj}/proposal-harga', [PengajuanController::class, 'createPh'])

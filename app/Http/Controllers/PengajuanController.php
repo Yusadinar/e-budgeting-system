@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnnualBudget;
 use App\Models\BudgetLog;
+use App\Models\Department;
 use App\Models\InternalAgreement;
 use App\Models\Ppbj;
 use App\Models\ProposalHarga;
@@ -12,34 +13,77 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class PengajuanController extends Controller
 {
     // =========================================================
-    // STEP 1 — Form PPBJ
+    // STEP 1 — Form PPBJ (Document style)
     // =========================================================
 
     /**
-     * Tampilkan form wizard Step 1: Input PPBJ.
+     * Tampilkan form dokumen PPBJ bergaya kertas.
      */
     public function createPpbj(): View
     {
-        $user   = Auth::user();
-        $budget = AnnualBudget::where('dept_id', $user->department?->id)
+        $user        = Auth::user();
+        $budget      = AnnualBudget::where('dept_id', $user->department?->id)
             ->where('fiscal_year', now()->year)
             ->first();
+        $departments = Department::orderBy('dept_name')->pluck('dept_name', 'id');
+        $nextNumber  = Ppbj::generateNumber();
 
-        return view('pengajuan.step1-ppbj', compact('user', 'budget'));
+        return view('pengajuan.step1-ppbj', compact('user', 'budget', 'departments', 'nextNumber'));
     }
 
     /**
-     * Simpan PPBJ dan redirect ke Step 2.
+     * Simpan PPBJ lengkap dan redirect ke index.
      */
     public function storePpbj(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'jenis_pengeluaran' => ['required', 'in:FR,IR,IO'],
+            'department_section'   => ['required', 'string', 'max:255'],
+            'subject'              => ['required', 'string', 'max:255'],
+            'nama_barang_jasa'     => ['required', 'string', 'max:255'],
+            'spesifikasi'          => ['required', 'string'],
+            'qty'                  => ['required', 'integer', 'min:1'],
+            'uom'                  => ['required', 'string', 'max:50'],
+            'pernah_order'         => ['required', 'in:sudah,belum'],
+            'pernah_order_bulan'   => ['nullable', 'string', 'max:50'],
+            // 5W+1H
+            'bg_what'              => ['required', 'string'],
+            'bg_why'               => ['required', 'string'],
+            'bg_when'              => ['required', 'string'],
+            'bg_where'             => ['required', 'string'],
+            'bg_who'               => ['required', 'string'],
+            'bg_how'               => ['required', 'string'],
+            // Risk Analysis
+            'risk_analysis'        => ['required', 'string'],
+            // Condition photo
+            'condition_photo'      => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            // Detail Spec
+            'spec_brand'           => ['required', 'string', 'max:255'],
+            'spec_maker'           => ['required', 'string', 'max:255'],
+            'spec_negara_asal'     => ['required', 'string', 'max:255'],
+            'spec_lain_lain'       => ['nullable', 'string'],
+            // Urgency
+            'urgency_level'        => ['required', 'in:low,medium,high'],
+            'potensi_line_stop'    => ['nullable', 'string', 'max:100'],
+            'urgency_options'      => ['nullable', 'array'],
+            'urgency_options.*'    => ['in:tidak_ada_backup,pengadaan_baru,penggantian_rusak,schedule_general_check'],
+            'pengadaan_baru_untuk' => ['nullable', 'string', 'max:255'],
+            'schedule_general_check' => ['nullable', 'date'],
+            // Budget
+            'budget_type'          => ['required', 'in:capex,foh,opex,project'],
+            'budget_amount_range'  => ['required', 'string'],
+            'capex_attachment'     => ['nullable', 'file', 'max:10240'],
+            // Layout Area
+            'layout_photo'         => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'lokasi_pressline'     => ['nullable', 'string', 'max:255'],
+            'lokasi_sub_assy'      => ['nullable', 'string', 'max:255'],
+            'lokasi_metal_finish'  => ['nullable', 'string', 'max:255'],
+            'lokasi_lain_lain'     => ['nullable', 'string', 'max:255'],
         ]);
 
         $user = Auth::user();
@@ -48,19 +92,88 @@ class PengajuanController extends Controller
             ->exists();
 
         if (! $budgetExists) {
-            return back()->with('warning', 'Departemen Anda belum memiliki pagu anggaran untuk tahun ini. Silakan hubungi Kepala Departemen Anda untuk melakukan input budget terlebih dahulu.');
+            return back()->with('warning', 'Departemen Anda belum memiliki pagu anggaran untuk tahun ini. Silakan hubungi Kepala Departemen Anda untuk melakukan input budget terlebih dahulu.')->withInput();
+        }
+
+        // Handle file uploads
+        $conditionPhotoPath = null;
+        if ($request->hasFile('condition_photo')) {
+            $conditionPhotoPath = $request->file('condition_photo')
+                ->store('ppbj/condition', 'public');
+        }
+
+        $layoutPhotoPath = null;
+        if ($request->hasFile('layout_photo')) {
+            $layoutPhotoPath = $request->file('layout_photo')
+                ->store('ppbj/layout', 'public');
+        }
+
+        $capexAttachmentPath = null;
+        if ($request->hasFile('capex_attachment')) {
+            $capexAttachmentPath = $request->file('capex_attachment')
+                ->store('ppbj/capex', 'public');
         }
 
         $ppbj = Ppbj::create([
-            'user_id'           => Auth::id(),
-            'jenis_pengeluaran' => $validated['jenis_pengeluaran'],
-            'ppbj_number'       => Ppbj::generateNumber(),
-            'approval_step'     => 1,
-            'status'            => 'In_Review',
+            'user_id'               => Auth::id(),
+            'ppbj_number'           => Ppbj::generateNumber(),
+            'jenis_pengeluaran'     => 'FR', // Default, can be changed later
+            'approval_step'         => 1,
+            'status'                => 'In_Review',
+            // Form data
+            'department_section'    => $validated['department_section'],
+            'subject'               => $validated['subject'],
+            'nama_barang_jasa'      => $validated['nama_barang_jasa'],
+            'spesifikasi'           => $validated['spesifikasi'],
+            'qty'                   => $validated['qty'],
+            'uom'                   => $validated['uom'],
+            'pernah_order'          => $validated['pernah_order'],
+            'pernah_order_bulan'    => $validated['pernah_order_bulan'] ?? null,
+            // 5W+1H
+            'bg_what'               => $validated['bg_what'],
+            'bg_why'                => $validated['bg_why'],
+            'bg_when'               => $validated['bg_when'],
+            'bg_where'              => $validated['bg_where'],
+            'bg_who'                => $validated['bg_who'],
+            'bg_how'                => $validated['bg_how'],
+            // Risk
+            'risk_analysis'         => $validated['risk_analysis'],
+            // Photos
+            'condition_photo'       => $conditionPhotoPath,
+            'layout_photo'          => $layoutPhotoPath,
+            // Detail Spec
+            'spec_brand'            => $validated['spec_brand'],
+            'spec_maker'            => $validated['spec_maker'],
+            'spec_negara_asal'      => $validated['spec_negara_asal'],
+            'spec_lain_lain'        => $validated['spec_lain_lain'] ?? null,
+            // Urgency
+            'urgency_level'         => $validated['urgency_level'],
+            'potensi_line_stop'     => $validated['potensi_line_stop'] ?? null,
+            'urgency_options'       => $validated['urgency_options'] ?? [],
+            'pengadaan_baru_untuk'  => $validated['pengadaan_baru_untuk'] ?? null,
+            'schedule_general_check'=> $validated['schedule_general_check'] ?? null,
+            // Budget
+            'budget_type'           => $validated['budget_type'],
+            'budget_amount_range'   => $validated['budget_amount_range'],
+            'capex_attachment'      => $capexAttachmentPath,
+            // Layout
+            'lokasi_pressline'      => $validated['lokasi_pressline'] ?? null,
+            'lokasi_sub_assy'       => $validated['lokasi_sub_assy'] ?? null,
+            'lokasi_metal_finish'   => $validated['lokasi_metal_finish'] ?? null,
+            'lokasi_lain_lain'      => $validated['lokasi_lain_lain'] ?? null,
         ]);
 
         return redirect()->route('pengajuan.index')
             ->with('success', "PPBJ {$ppbj->ppbj_number} berhasil dibuat dan menunggu persetujuan.");
+    }
+
+    /**
+     * Tampilkan detail PPBJ dalam bentuk dokumen (printable).
+     */
+    public function showPpbj(Ppbj $ppbj): View
+    {
+        $ppbj->load('user.department');
+        return view('pengajuan.show-ppbj', compact('ppbj'));
     }
 
     // =========================================================
