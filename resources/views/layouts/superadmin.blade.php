@@ -229,8 +229,16 @@
                     <span class="text-slate-600 font-medium">@yield('page-title', 'Dashboard')</span>
                 </nav>
 
+                {{-- Real-time Clock --}}
+                <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/5 border border-slate-900/10 ml-3">
+                    <svg class="w-3.5 h-3.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="realtime-clock" class="text-xs font-mono font-medium text-slate-600">00:00:00</span>
+                </div>
+
                 {{-- Admin Badge --}}
-                <div class="flex items-center gap-2 pl-3 border-l border-slate-100">
+                <div class="flex items-center gap-2 pl-3 border-l border-slate-100 ml-2">
                     <div class="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-md shadow-violet-500/20">
                         <span class="text-white text-xs font-bold">
                             {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
@@ -303,6 +311,25 @@
                 closeSidebar();
             }
         }
+
+        // Real-time Clock
+        function updateClock() {
+            const now = new Date();
+            const options = { 
+                timeZone: 'Asia/Jakarta', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hour12: false 
+            };
+            const timeString = new Intl.DateTimeFormat('en-GB', options).format(now);
+            const clockElement = document.getElementById('realtime-clock');
+            if (clockElement) {
+                clockElement.textContent = timeString + ' WIB';
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
     </script>
 
     @stack('scripts')

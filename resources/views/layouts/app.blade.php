@@ -161,6 +161,15 @@
                 {{-- ── DIRECTOR MENU ── --}}
                 <p class="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Monitoring</p>
 
+                <a href="{{ route('director.departments.index') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+                          {{ request()->routeIs('director.departments.*') ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-400 hover:text-white hover:bg-white/[0.07]' }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21"/>
+                    </svg>
+                    Departemen
+                </a>
+
                 <a href="{{ route('tracking.index') }}"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
                           {{ request()->routeIs('tracking.*') ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-400 hover:text-white hover:bg-white/[0.07]' }}">
@@ -245,9 +254,17 @@
                     <span class="text-slate-600 font-medium">@yield('page-title', 'Dashboard')</span>
                 </nav>
 
+                {{-- Real-time Clock --}}
+                <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 ml-3">
+                    <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="realtime-clock" class="text-xs font-mono font-medium text-slate-600">00:00:00</span>
+                </div>
+
                 {{-- Profile Avatar --}}
                 <a href="{{ route('profile.edit') }}"
-                   class="flex items-center gap-2 pl-3 border-l border-slate-100">
+                   class="flex items-center gap-2 pl-3 border-l border-slate-100 ml-2">
                     <div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center">
                         <span class="text-indigo-600 text-xs font-semibold">
                             {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
@@ -311,6 +328,25 @@
             document.getElementById('sidebar').classList.add('-translate-x-full');
             document.getElementById('sidebar-overlay').classList.add('hidden');
         }
+
+        // Real-time Clock
+        function updateClock() {
+            const now = new Date();
+            const options = { 
+                timeZone: 'Asia/Jakarta', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hour12: false 
+            };
+            const timeString = new Intl.DateTimeFormat('en-GB', options).format(now);
+            const clockElement = document.getElementById('realtime-clock');
+            if (clockElement) {
+                clockElement.textContent = timeString + ' WIB';
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
     </script>
 
     @stack('scripts')

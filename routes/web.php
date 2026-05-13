@@ -52,6 +52,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('director.dashboard')
         ->middleware('role:man_dir,fin_dir,pres_dir');
 
+    // Director department monitoring
+    Route::prefix('director/departments')
+        ->name('director.departments.')
+        ->middleware('role:man_dir,fin_dir,pres_dir')
+        ->group(function () {
+            Route::get('/', [Dir\DepartmentController::class, 'index'])->name('index');
+            Route::get('/{department}', [Dir\DepartmentController::class, 'show'])->name('show');
+        });
+
     // ----------------------------------------------------------
     // BUDGET
     // ----------------------------------------------------------
