@@ -27,7 +27,7 @@ class ApprovalController extends Controller
         $currentStep = (int) $ppbj->approval_step;
 
         $isValid = match($currentStep) {
-            1 => $user->isKaDept(),
+            1 => $user->isKaDept() && $ppbj->user->dept_id === $user->dept_id,
             2 => $user->isKaDiv(),
             3 => $user->isAccounting(),
             default => false,
@@ -69,7 +69,7 @@ class ApprovalController extends Controller
         $currentStep = (int) $ph->approval_step;
 
         $isValid = match($currentStep) {
-            1 => $user->isKaDept(),
+            1 => $user->isKaDept() && $ph->ppbj->user->dept_id === $user->dept_id,
             2 => $user->isKaDiv(),
             3 => $user->isAccounting(),
             default => false,
@@ -111,7 +111,7 @@ class ApprovalController extends Controller
         $currentStep = (int) $ia->approval_step;
 
         $isValid = match($currentStep) {
-            1 => $user->isKaDept(),
+            1 => $user->isKaDept() && $ia->proposalHarga->ppbj->user->dept_id === $user->dept_id,
             2 => $user->isKaDiv(),
             3 => $user->isKaDeptAcc(),
             4 => $user->isKaDivAcc(),
