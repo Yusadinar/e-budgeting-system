@@ -48,5 +48,23 @@
             @yield('content')
         </div>
     </div>
+    <script>
+        function togglePassword(inputId, btnId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleBtn = document.getElementById(btnId);
+            const eyeIcon = toggleBtn.querySelector('.eye-icon');
+            const eyeOffIcon = toggleBtn.querySelector('.eye-off-icon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeOffIcon.classList.remove('hidden');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('hidden');
+                eyeOffIcon.classList.add('hidden');
+            }
+        }
+    </script>
 </body>
 </html>
