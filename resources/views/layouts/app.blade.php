@@ -264,7 +264,7 @@
 
                 {{-- Profile Avatar --}}
                 <a href="{{ route('profile.edit') }}"
-                   class="flex items-center gap-2 pl-3 border-l border-slate-100 ml-2">
+                   class="flex items-center gap-2 pl-3 border-l border-slate-100 ml-2 hover:opacity-80 transition-opacity">
                     <div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center">
                         <span class="text-indigo-600 text-xs font-semibold">
                             {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}

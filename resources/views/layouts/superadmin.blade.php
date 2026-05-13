@@ -238,13 +238,13 @@
                 </div>
 
                 {{-- Admin Badge --}}
-                <div class="flex items-center gap-2 pl-3 border-l border-slate-100 ml-2">
+                <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 pl-3 border-l border-slate-100 ml-2 hover:opacity-80 transition-opacity">
                     <div class="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-md shadow-violet-500/20">
                         <span class="text-white text-xs font-bold">
                             {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                         </span>
                     </div>
-                </div>
+                </a>
             </header>
 
             {{-- Flash Messages --}}
