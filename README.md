@@ -1,59 +1,81 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# E-Budgeting System 📊
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+E-Budgeting System adalah aplikasi berbasis web yang dibangun menggunakan **Laravel** untuk mengelola, melacak, dan menyetujui pengajuan anggaran (budget) secara digital di dalam perusahaan. Sistem ini mempermudah alur birokrasi pengajuan dana melalui tahapan yang terstruktur dan termonitor dengan baik.
 
-## About Laravel
+## 🌟 Fitur Utama
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Role-Based Access Control (RBAC):** Akses sistem dibagi berdasarkan peran (Superadmin, Director, Kepala Departemen, Kepala Divisi, Accounting, Staff, dll).
+- **Alur Persetujuan Bertingkat:** 
+  1. Permintaan Pengadaan Barang/Jasa (PPBJ)
+  2. Proposal Harga (PH)
+  3. Internal Agreement (IA)
+- **Monitoring Real-time:** Dashboard khusus untuk memonitor status pengajuan dan sisa pagu anggaran (budget) masing-masing departemen.
+- **Export/Cetak Dokumen:** Fitur untuk mengunduh dokumen pengajuan dalam format PDF dan upload template Excel.
+- **Keamanan & Validasi:** Validasi ketat terhadap nominal anggaran agar tidak melebihi sisa pagu, serta pembatasan hak akses (approval) antar departemen.
+- **Automated Testing:** Terintegrasi dengan TestSprite untuk pengujian otomatis (Frontend & Backend).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Teknologi yang Digunakan
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Framework:** Laravel (PHP)
+- **Frontend:** Blade Templating, TailwindCSS, Vanilla JavaScript
+- **Database:** MySQL
+- **Testing:** PHPUnit, TestSprite AI Agent
 
-## Learning Laravel
+## 🛠️ Instalasi di Komputer Lokal (Development)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Ikuti langkah-langkah berikut untuk menjalankan project ini di komputer Anda:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. **Clone repository ini:**
+   ```bash
+   git clone https://github.com/Yusadinar/e-budgeting-system.git
+   cd e-budgeting-system
+   ```
 
-## Laravel Sponsors
+2. **Install dependencies (PHP & Node.js):**
+   ```bash
+   composer install
+   npm install && npm run build
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+3. **Konfigurasi Environment:**
+   Copy file `.env.example` menjadi `.env` lalu sesuaikan konfigurasi database Anda.
+   ```bash
+   cp .env.example .env
+   ```
+   *Note: Pastikan mengatur `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD`.*
 
-### Premium Partners
+4. **Generate App Key & Setup Database:**
+   ```bash
+   php artisan key:generate
+   php artisan migrate --seed
+   ```
+   *(Catatan: `--seed` akan memasukkan data dummy (seeder) seperti user, departemen, dll).*
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+5. **Buat Symlink Storage (Untuk Gambar/PDF):**
+   ```bash
+   php artisan storage:link
+   ```
 
-## Contributing
+6. **Jalankan Aplikasi:**
+   ```bash
+   php artisan serve
+   ```
+   Buka browser dan akses: `http://localhost:8000`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🌍 Panduan Deployment (Shared Hosting)
 
-## Code of Conduct
+Project ini telah dilengkapi dengan file `.htaccess` di *root directory* agar mudah di-deploy ke *shared hosting* (seperti InfinityFree, Niagahoster, dll) tanpa perlu memodifikasi *core files* Laravel.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1. Upload **seluruh isi project** ke folder `htdocs` atau `public_html` di hosting Anda.
+2. Buat database di cPanel dan import file database `.sql` Anda.
+3. Sesuaikan file `.env` dengan kredensial database di hosting:
+   ```env
+   APP_ENV=production
+   APP_DEBUG=false
+   APP_URL=http://domain-anda.com
+   ```
+4. Website siap diakses! (File `.htaccess` akan otomatis mengarahkan *traffic* ke folder `public/`).
 
-## Security Vulnerabilities
+## 👨‍💻 Kontributor
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Yusadinar** - *Lead Developer*
