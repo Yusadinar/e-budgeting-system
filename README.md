@@ -62,6 +62,30 @@ Ikuti langkah-langkah berikut untuk menjalankan project ini di komputer Anda:
    ```
    Buka browser dan akses: `http://localhost:8000`
 
+## 🔑 Akun Demo (Seeder)
+
+Setelah menjalankan `php artisan migrate --seed`, Anda dapat menggunakan akun-akun berikut untuk login ke dalam sistem. Semua akun menggunakan password default: **`password`**
+
+### 1. Level Direktur
+- Managing Director: `octa.yudha@establish.dev`
+- Finance Director: `riana.budiwi@establish.dev`
+
+### 2. Level Kepala Divisi (Ka. Div)
+- Mfg IKAR: `sriyanto@establish.dev`
+- Finance Acc: `rina.finance@establish.dev`
+
+### 3. Level Kepala Departemen (Ka. Dept)
+- Marketing IBEK: `permana.aditya@establish.dev`
+- Engineering IBEK: `bayu.prakosa@establish.dev`
+- HCGS: `ahmad.fadillah@establish.dev`
+
+### 4. Level Kepala Seksi (Ka. Seksi)
+- Produksi Shift A: `bagas.rangga@establish.dev`
+- Quality Control IKAR: `priyanto@establish.dev`
+- GL & Tax: `chandrika.aulia@establish.dev`
+
+*(Daftar lengkap akun dapat dilihat pada file `database/seeders/UserSeeder.php`)*
+
 ## 🌍 Panduan Deployment (Shared Hosting)
 
 Project ini telah dilengkapi dengan file `.htaccess` di *root directory* agar mudah di-deploy ke *shared hosting* (seperti InfinityFree, Niagahoster, dll) tanpa perlu memodifikasi *core files* Laravel.
