@@ -194,29 +194,44 @@ class TrackingController extends Controller
 
         // --- IA STAGE ---
         $timeline[] = ['type' => 'divider', 'label' => 'TAHAP INTERNAL AGREEMENT'];
+        
+        $maxStepIA = 4;
+        if ($ph) {
+            $nominalIA = (float) $ph->nominal_request;
+            if ($nominalIA > 100000000 && $nominalIA <= 600000000) $maxStepIA = 5;
+            elseif ($nominalIA > 600000000) $maxStepIA = 6;
+        }
+
         if ($ia) {
             $iaStep = (int) $ia->approval_step;
             $iaStatus = $ia->status_ia;
 
             $timeline[] = $this->makeNode('Pengajuan IA', 'Dibuat oleh Susan Anggraeni', $ia->created_at, 'done');
-            $timeline[] = $this->makeNode('Review Ka. Dept Pengaju (IA)', 'Menunggu persetujuan', $iaStep > 1 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 1));
-            $timeline[] = $this->makeNode('Review Ka. Div Pengaju (IA)', 'Menunggu persetujuan', $iaStep > 2 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 2));
-            $timeline[] = $this->makeNode('Review Ka. Dept Finance Accounting (IA)', 'Menunggu persetujuan', $iaStep > 3 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 3));
-            $timeline[] = $this->makeNode('Review Ka. Div Finance Accounting (IA)', 'Menunggu persetujuan', $iaStep > 4 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 4));
-            $timeline[] = $this->makeNode('Review Finance Director (IA)', 'Menunggu persetujuan', $iaStep > 5 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 5));
-            $timeline[] = $this->makeNode('Review Manufacture Director (IA)', 'Menunggu persetujuan', $iaStep > 6 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 6));
-            $timeline[] = $this->makeNode('Review President Director (IA)', 'Menunggu persetujuan', $iaStep > 7 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 7));
-            $timeline[] = $this->makeNode('Finalisasi (Realisasi Anggaran)', 'Anggaran dipotong', $iaStatus === 'Approved' ? $ia->updated_at : null, $iaStatus === 'Approved' ? 'done' : 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Sie Terkait', 'Menunggu persetujuan', $iaStep > 1 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 1));
+            $timeline[] = $this->makeNode('Review Ka. Dept Terkait', 'Menunggu persetujuan', $iaStep > 2 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 2));
+            $timeline[] = $this->makeNode('Review Ka. Div Terkait', 'Menunggu persetujuan', $iaStep > 3 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 3));
+            $timeline[] = $this->makeNode('Review Ka. Dept Finance Accounting', 'Menunggu persetujuan', $iaStep > 4 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 4));
+            
+            if ($maxStepIA >= 5) {
+                $timeline[] = $this->makeNode('Review Production Director', 'Menunggu persetujuan', $iaStep > 5 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 5));
+            }
+            if ($maxStepIA >= 6) {
+                $timeline[] = $this->makeNode('Review Finance Director', 'Menunggu persetujuan', $iaStep > 6 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 6));
+            }
+            $timeline[] = $this->makeNode('Finalisasi (Realisasi Anggaran)', 'Anggaran direalisasikan', $iaStatus === 'Approved' ? $ia->updated_at : null, $iaStatus === 'Approved' ? 'done' : 'pending');
         } else {
             $timeline[] = $this->makeNode('Pengajuan IA', 'Belum diajukan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Ka. Dept Pengaju (IA)', 'Menunggu persetujuan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Ka. Div Pengaju (IA)', 'Menunggu persetujuan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Ka. Dept Finance Accounting (IA)', 'Menunggu persetujuan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Ka. Div Finance Accounting (IA)', 'Menunggu persetujuan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Finance Director (IA)', 'Menunggu persetujuan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Manufacture Director (IA)', 'Menunggu persetujuan', null, 'pending');
-            $timeline[] = $this->makeNode('Review President Director (IA)', 'Menunggu persetujuan', null, 'pending');
-            $timeline[] = $this->makeNode('Finalisasi (Realisasi Anggaran)', 'Anggaran dipotong', null, 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Sie Terkait', 'Menunggu persetujuan', null, 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Dept Terkait', 'Menunggu persetujuan', null, 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Div Terkait', 'Menunggu persetujuan', null, 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Dept Finance Accounting', 'Menunggu persetujuan', null, 'pending');
+            if ($maxStepIA >= 5) {
+                $timeline[] = $this->makeNode('Review Production Director', 'Menunggu persetujuan', null, 'pending');
+            }
+            if ($maxStepIA >= 6) {
+                $timeline[] = $this->makeNode('Review Finance Director', 'Menunggu persetujuan', null, 'pending');
+            }
+            $timeline[] = $this->makeNode('Finalisasi (Realisasi Anggaran)', 'Anggaran direalisasikan', null, 'pending');
         }
 
         return $timeline;

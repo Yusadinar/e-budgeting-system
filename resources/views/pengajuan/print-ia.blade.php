@@ -83,15 +83,15 @@
                         <div class="border border-black text-[9px] mt-1 leading-[1.0]">
                             <div class="p-1 border-b border-black">
                                 <table class="w-full">
-                                    <tr><td class="w-[95px] whitespace-nowrap">DIVISI/DEPT</td><td>: {{ $ia->proposalHarga->ppbj->user->department?->dept_name ?? '-' }}</td></tr>
-                                    <tr><td>SECTION</td><td>: {{ $ia->proposalHarga->section_name ?? '-' }}</td></tr>
-                                    <tr><td>TGL. REG. SECT.</td><td>: &nbsp;</td></tr>
-                                    <tr><td>TGL. REG. BGT.</td><td>: &nbsp;</td></tr>
+                                    <tr><td class="w-[95px] whitespace-nowrap">DIVISI/DEPT</td><td class="uppercase">: {{ $ia->proposalHarga->ppbj->user->department?->dept_name ?? '-' }}</td></tr>
+                                    <tr><td>SECTION</td><td class="uppercase">: {{ $ia->proposalHarga->section_name ?? '-' }}</td></tr>
+                                    <tr><td>TGL. REG. SECT.</td><td>: {{ $ia->created_at->format('d/m/Y') }}</td></tr>
+                                    <tr><td>TGL. REG. BGT.</td><td>: {{ $ia->created_at->format('d/m/Y') }}</td></tr>
                                 </table>
                             </div>
                             <div class="p-1">
                                 <table class="w-full">
-                                    <tr><td class="w-[95px] whitespace-nowrap">COST CENTER</td><td>: {{ $ia->proposalHarga->cost_center ?? '-' }}</td></tr>
+                                    <tr><td class="w-[95px] whitespace-nowrap">COST CENTER</td><td>: {{ trim(explode(' ', $ia->proposalHarga->cost_center ?? '-')[0]) }}</td></tr>
                                     <tr><td class="whitespace-nowrap">NO. FR/IO/MATNUM</td><td>: &nbsp;</td></tr>
                                     <tr><td>NO. ASSET</td><td>: &nbsp;</td></tr>
                                 </table>
@@ -170,20 +170,36 @@
                             </tr>
                             
                             @php
-                                $itemsData = $ia->proposalHarga->items_data;
-                                $items = is_array($itemsData) ? $itemsData : (json_decode($itemsData, true) ?? []);
+                                $itemsData = is_string($ia->proposalHarga->items_data) ? json_decode($ia->proposalHarga->items_data, true) : $ia->proposalHarga->items_data;
+                                
+                                $isNewFormat = isset($itemsData['vendors']) && isset($itemsData['items']);
+                                if ($isNewFormat) {
+                                    $items = $itemsData['items'];
+                                } else {
+                                    $items = is_array($itemsData) ? $itemsData : [];
+                                    if (!empty($items) && !isset($items[0])) {
+                                        $items = [$items];
+                                    }
+                                }
+                                
                                 $totalEstimasi = 0;
                             @endphp
-                            @forelse($items as $index => $item)
+                            @forelse($items as $item)
                             @php
-                                $totalHarga = ($item['qty'] ?? 0) * ($item['unit_price'] ?? 0);
+                                $rawQty = $item['qty'] ?? 0;
+                                $winnerIdx = $item['winner_index'] ?? 0;
+                                $rawPrice = $item['vendor_prices'][$winnerIdx] ?? ($item['unit_price'] ?? 0);
+                                
+                                $qty = is_numeric($rawQty) ? (float) $rawQty : 0;
+                                $price = is_numeric($rawPrice) ? (float) $rawPrice : 0;
+                                $totalHarga = $qty * $price;
                                 $totalEstimasi += $totalHarga;
                             @endphp
                             <tr>
-                                <td class="text-center">{{ $index + 1 }}</td>
-                                <td class="text-left px-2 pl-4">- {{ $item['description'] ?? '-' }}</td>
-                                <td class="text-right px-2">{{ $item['qty'] ?? 0 }} {{ $item['uom'] ?? '' }}</td>
-                                <td class="text-right px-2">{{ number_format($item['unit_price'] ?? 0, 0, ',', '.') }}</td>
+                                <td class="text-center">{{ $loop->iteration }}</td>
+                                <td class="text-left px-2 pl-4">{{ $item['description'] ?? '-' }}</td>
+                                <td class="text-right px-2">{{ $rawQty }} {{ $item['uom'] ?? '' }}</td>
+                                <td class="text-right px-2">{{ number_format($price, 0, ',', '.') }}</td>
                                 <td class="text-right px-2">{{ number_format($totalHarga, 0, ',', '.') }}</td>
                                 <td class="text-left px-2 text-[9px]">-</td>
                             </tr>
@@ -236,9 +252,9 @@
                             <th class="w-[14%] text-[8px] font-normal py-0.5">Production Director</th>
                             <th class="w-[14%] text-[8px] font-normal py-0.5">Finance Director</th>
                             <td rowspan="3" class="align-top text-left p-2 text-[9px] font-normal bg-white">
-                                <div class="flex items-start pb-1">
+                                <div class="flex items-start mb-0.5">
                                     <div class="w-[55px] font-bold">NO REGIS</div>
-                                    <div class="font-bold">: &nbsp;</div>
+                                    <div class="font-bold">: {{ explode('/', $ia->ia_number)[0] }}/{{ $ia->created_at->format('Y') }}</div>
                                 </div>
                                 <div class="flex items-start">
                                     <div class="w-[55px] font-bold">TGL REGIS</div>
@@ -248,8 +264,10 @@
                         </tr>
                         <tr>
                             @php
-                                // Saat ini IA wajib sampai step 6 untuk semua nominal
-                                $maxStepIA = 6; 
+                                $nominalIA = (float) $ia->final_nominal;
+                                $maxStepIA = 4;
+                                if ($nominalIA > 100000000 && $nominalIA <= 600000000) $maxStepIA = 5;
+                                elseif ($nominalIA > 600000000) $maxStepIA = 6;
                             @endphp
                             @for($step = 1; $step <= 6; $step++)
                                 @php
@@ -279,7 +297,7 @@
                                     $approval = $ia->approvals->where('step', $step)->first();
                                 @endphp
                                 <td class="border-t-0 text-[8px] pt-1">
-                                    Nama: {{ $approval ? $approval->user->name : '' }}
+                                    {{ $approval ? $approval->user->name : '' }}
                                 </td>
                             @endfor
                         </tr>

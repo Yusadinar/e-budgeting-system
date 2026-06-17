@@ -271,10 +271,20 @@ class ApprovalController extends Controller
 
         abort_if(!$isValid, 422, 'Bukan giliran Anda untuk menyetujui IA ini atau role tidak sesuai.');
 
-        DB::transaction(function () use ($ia, $user, $currentStep, $request) {
-            $nextStep = $currentStep + 1;
-            $isFinalStep = $nextStep > 6;
+        // Menentukan batas step approval IA berdasarkan nominal (seperti PH)
+        $nominal = (float) $ia->final_nominal;
+        $maxStep = 4; // Default sampai Ka. Dept FA (<= 100.000.000)
+        
+        if ($nominal > 100000000 && $nominal <= 600000000) {
+            $maxStep = 5; // Sampai Production Director
+        } elseif ($nominal > 600000000) {
+            $maxStep = 6; // Sampai Finance Director
+        }
 
+        $nextStep = $currentStep + 1;
+        $isFinalStep = $currentStep >= $maxStep;
+
+        DB::transaction(function () use ($ia, $user, $currentStep, $nextStep, $isFinalStep, $request) {
             // Simpan Tanda Tangan
             \App\Models\IaApproval::updateOrCreate(
                 ['ia_id' => $ia->id, 'step' => $currentStep],
@@ -324,9 +334,6 @@ class ApprovalController extends Controller
                 }
             }
         });
-
-        $nextStep = $currentStep + 1;
-        $isFinalStep = $nextStep > 6;
 
         return back()->with('success', $isFinalStep ? 'Internal Agreement disetujui final dan anggaran telah direalisasikan.' : 'IA diteruskan ke tahap persetujuan berikutnya.');
     }

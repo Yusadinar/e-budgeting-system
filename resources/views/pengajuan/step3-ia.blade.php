@@ -82,15 +82,15 @@
                             <div class="border border-black text-[9px] mt-1 leading-[1.0]">
                                 <div class="p-1 border-b border-black">
                                     <table class="w-full">
-                                        <tr><td class="w-[95px] whitespace-nowrap">DIVISI/DEPT</td><td>: {{ $proposalHarga->ppbj->user->department?->dept_name ?? '-' }}</td></tr>
-                                        <tr><td>SECTION</td><td>: {{ $proposalHarga->section_name ?? '-' }}</td></tr>
-                                        <tr><td>TGL. REG. SECT.</td><td>: &nbsp;</td></tr>
-                                        <tr><td>TGL. REG. BGT.</td><td>: &nbsp;</td></tr>
+                                        <tr><td class="w-[95px] whitespace-nowrap">DIVISI/DEPT</td><td class="uppercase">: {{ $proposalHarga->ppbj->user->department?->dept_name ?? '-' }}</td></tr>
+                                        <tr><td>SECTION</td><td class="uppercase">: {{ $proposalHarga->section_name ?? '-' }}</td></tr>
+                                        <tr><td>TGL. REG. SECT.</td><td>: {{ now()->format('d/m/Y') }}</td></tr>
+                                        <tr><td>TGL. REG. BGT.</td><td>: {{ now()->format('d/m/Y') }}</td></tr>
                                     </table>
                                 </div>
                                 <div class="p-1">
                                     <table class="w-full">
-                                        <tr><td class="w-[95px] whitespace-nowrap">COST CENTER</td><td>: {{ $proposalHarga->cost_center ?? '-' }}</td></tr>
+                                        <tr><td class="w-[95px] whitespace-nowrap">COST CENTER</td><td>: {{ trim(explode(' ', $proposalHarga->cost_center ?? '-')[0]) }}</td></tr>
                                         <tr><td class="whitespace-nowrap">NO. FR/IO/MATNUM</td><td>: &nbsp;</td></tr>
                                         <tr><td>NO. ASSET</td><td>: &nbsp;</td></tr>
                                     </table>
@@ -174,21 +174,25 @@
                                 </tr>
                                 
                                 @php
-                                    $itemsData = $proposalHarga->items_data;
-                                    $items = is_array($itemsData) ? $itemsData : (json_decode($itemsData, true) ?? []);
+                                    $itemsData = is_string($proposalHarga->items_data) ? json_decode($proposalHarga->items_data, true) : $proposalHarga->items_data;
                                     
-                                    // Jika data items ternyata associative array 1-dimensi (hanya 1 item tanpa dibungkus array), kita bungkus.
-                                    if (!empty($items) && !isset($items[0])) {
-                                        $items = [$items];
+                                    $isNewFormat = isset($itemsData['vendors']) && isset($itemsData['items']);
+                                    if ($isNewFormat) {
+                                        $items = $itemsData['items'];
+                                    } else {
+                                        $items = is_array($itemsData) ? $itemsData : [];
+                                        if (!empty($items) && !isset($items[0])) {
+                                            $items = [$items];
+                                        }
                                     }
                                     
                                     $totalEstimasi = 0;
                                 @endphp
                                 @forelse($items as $item)
                                 @php
-                                    // Ekstrak dengan fallback agar tidak memanggil array key undefined dua kali
                                     $rawQty = $item['qty'] ?? 0;
-                                    $rawPrice = $item['unit_price'] ?? 0;
+                                    $winnerIdx = $item['winner_index'] ?? 0;
+                                    $rawPrice = $item['vendor_prices'][$winnerIdx] ?? ($item['unit_price'] ?? 0);
                                     
                                     $qty = is_numeric($rawQty) ? (float) $rawQty : 0;
                                     $price = is_numeric($rawPrice) ? (float) $rawPrice : 0;
@@ -197,7 +201,7 @@
                                 @endphp
                                 <tr>
                                     <td class="text-center">{{ $loop->iteration }}</td>
-                                    <td class="text-left px-2 pl-4">- {{ $item['description'] ?? '-' }}</td>
+                                    <td class="text-left px-2 pl-4">{{ $item['description'] ?? '-' }}</td>
                                     <td class="text-right px-2">{{ $rawQty }} {{ $item['uom'] ?? '' }}</td>
                                     <td class="text-right px-2">{{ number_format($price, 0, ',', '.') }}</td>
                                     <td class="text-right px-2">{{ number_format($totalHarga, 0, ',', '.') }}</td>
@@ -263,9 +267,22 @@
                                 </td>
                             </tr>
                             <tr>
+                                @php
+                                    $nominalIA = (float) old('final_nominal', $proposalHarga->nominal_request);
+                                    $maxStepIA = 4;
+                                    if ($nominalIA > 100000000 && $nominalIA <= 600000000) $maxStepIA = 5;
+                                    elseif ($nominalIA > 600000000) $maxStepIA = 6;
+                                @endphp
                                 @for($i = 1; $i <= 6; $i++)
                                 <td class="h-16 align-middle p-0 relative overflow-hidden bg-gray-50 border-b-0">
-                                    @if($i == 1)
+                                    @if($i > $maxStepIA)
+                                        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0.2; pointer-events: none;">
+                                            <svg style="width: 100%; height: 100%; color: black;" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                                <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" stroke-width="1.5" />
+                                                <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" stroke-width="1.5" />
+                                            </svg>
+                                        </div>
+                                    @elseif($i == 1)
                                         <span class="text-[7px] text-gray-400 italic">Tanda Tangan<br>di Bawah</span>
                                     @else
                                         <span class="text-[7px] text-gray-400 italic">Workflow</span>
@@ -274,12 +291,12 @@
                                 @endfor
                             </tr>
                             <tr>
-                                <td class="border-t-0 text-[8px] pt-1">Nama: </td>
-                                <td class="border-t-0 text-[8px] pt-1">Nama: </td>
-                                <td class="border-t-0 text-[8px] pt-1">Nama: </td>
-                                <td class="border-t-0 text-[8px] pt-1">Nama: </td>
-                                <td class="border-t-0 text-[8px] pt-1">Nama: </td>
-                                <td class="border-t-0 text-[8px] pt-1">Nama: </td>
+                                <td class="border-t-0 text-[8px] pt-1">&nbsp;</td>
+                                <td class="border-t-0 text-[8px] pt-1">&nbsp;</td>
+                                <td class="border-t-0 text-[8px] pt-1">&nbsp;</td>
+                                <td class="border-t-0 text-[8px] pt-1">&nbsp;</td>
+                                <td class="border-t-0 text-[8px] pt-1">&nbsp;</td>
+                                <td class="border-t-0 text-[8px] pt-1">&nbsp;</td>
                             </tr>
                         </table>
                     </div>

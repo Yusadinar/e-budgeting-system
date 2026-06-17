@@ -47,7 +47,29 @@
             <div class="flex-1 min-w-0">
                 <h2 class="text-base font-semibold text-slate-800 break-words">{{ $ph->subject ?? 'Pengajuan PPBJ' }}</h2>
                 <div class="flex flex-wrap items-center gap-2 mt-2">
-                    <span class="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded font-medium">{{ $ppbj->nama_barang_jasa ?? '—' }}</span>
+                    @php
+                        $rawItems = [];
+                        if ($ph && is_array($ph->items_data)) {
+                            $rawItems = $ph->items_data;
+                        } elseif ($ph && is_string($ph->items_data)) {
+                            $rawItems = json_decode($ph->items_data, true) ?? [];
+                        }
+
+                        $itemsList = isset($rawItems['items']) ? $rawItems['items'] : $rawItems;
+                        if (!empty($itemsList) && !isset($itemsList[0])) {
+                            $itemsList = [$itemsList];
+                        }
+                    @endphp
+
+                    @if(count($itemsList) > 0)
+                        @foreach($itemsList as $item)
+                            <span class="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded font-medium whitespace-nowrap">
+                                {{ $item['description'] ?? '-' }} ({{ $item['qty'] ?? 0 }} {{ strtoupper($item['uom'] ?? '') }})
+                            </span>
+                        @endforeach
+                    @else
+                        <span class="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded font-medium">{{ $ppbj->nama_barang_jasa ?? '—' }}</span>
+                    @endif
                 </div>
             </div>
             
@@ -110,6 +132,12 @@
                     <p class="text-[10px] text-slate-400 uppercase tracking-wide font-medium">Departemen</p>
                     <p class="text-sm font-medium text-slate-700 mt-0.5">{{ $ppbj->user->department?->dept_name ?? '—' }}</p>
                 </div>
+                @if($ph && $ph->cost_center)
+                <div>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wide font-medium">Cost Center</p>
+                    <p class="text-sm font-medium text-slate-700 mt-0.5">{{ $ph->cost_center }}</p>
+                </div>
+                @endif
                 <div>
                     <p class="text-[10px] text-slate-400 uppercase tracking-wide font-medium">Tanggal Dibuat</p>
                     <p class="text-sm font-medium text-slate-700 mt-0.5">{{ $ppbj->created_at?->format('d M Y, H:i') ?? '—' }}</p>
