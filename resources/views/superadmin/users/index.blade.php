@@ -37,12 +37,10 @@
                         'staff'       => 'Staff',
                         'ka_sie'      => 'Ka. Seksi',
                         'ka_dept'     => 'Ka. Dept',
-                        'ka_dept_acc' => 'Ka. Dept (Acc)',
                         'ka_div'      => 'Ka. Div',
-                        'ka_div_acc'  => 'Ka. Div (Acc)',
-                        'accounting'  => 'Accounting',
                         'fin_dir'     => 'Fin. Director',
                         'man_dir'     => 'Man. Director',
+                        'prod_dir'    => 'Prod. Director',
                         'pres_dir'    => 'Pres. Director',
                         default       => $role
                     } }}
@@ -102,29 +100,31 @@
                     <td class="py-3 px-4">
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold
                             {{ match($user->role) {
-                                'ka_div', 'ka_div_acc'   => 'bg-indigo-50 text-indigo-700 border border-indigo-200',
-                                'ka_dept', 'ka_dept_acc' => 'bg-sky-50 text-sky-700 border border-sky-200',
+                                'ka_div'                 => 'bg-indigo-50 text-indigo-700 border border-indigo-200',
+                                'ka_dept'                => 'bg-sky-50 text-sky-700 border border-sky-200',
                                 'ka_sie'                 => 'bg-teal-50 text-teal-700 border border-teal-200',
-                                'accounting'             => 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-                                'fin_dir', 'man_dir', 'pres_dir' => 'bg-amber-50 text-amber-700 border border-amber-200',
+                                'fin_dir', 'man_dir', 'prod_dir', 'pres_dir' => 'bg-amber-50 text-amber-700 border border-amber-200',
                                 default                  => 'bg-slate-50 text-slate-600 border border-slate-200',
                             } }}">
                             {{ match($user->role) {
                                 'staff'       => 'Staff',
                                 'ka_sie'      => 'Ka. Seksi',
                                 'ka_dept'     => 'Ka. Dept',
-                                'ka_dept_acc' => 'Ka. Dept (Acc)',
                                 'ka_div'      => 'Ka. Div',
-                                'ka_div_acc'  => 'Ka. Div (Acc)',
-                                'accounting'  => 'Accounting',
                                 'fin_dir'     => 'Fin. Director',
                                 'man_dir'     => 'Man. Director',
+                                'prod_dir'    => 'Prod. Director',
                                 'pres_dir'    => 'Pres. Director',
                                 default       => $user->role
                             } }}
                         </span>
                     </td>
-                    <td class="py-3 px-4 text-slate-500 text-xs">{{ $user->department?->dept_name ?? '—' }}</td>
+                    <td class="py-3 px-4 text-slate-500 text-xs">
+                        {{ $user->department?->dept_name ?? '—' }}
+                        @if($user->section)
+                            <div class="text-[10px] text-slate-400 mt-0.5">{{ $user->section }}</div>
+                        @endif
+                    </td>
                     <td class="py-3 px-4 text-slate-400 text-xs">{{ $user->created_at->format('d M Y') }}</td>
                     <td class="py-3 px-4 text-center">
                         <div class="flex items-center justify-center gap-1">
@@ -165,30 +165,33 @@
             </div>
             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0
                 {{ match($user->role) {
-                    'ka_div', 'ka_div_acc'   => 'bg-indigo-50 text-indigo-700 border border-indigo-200',
-                    'ka_dept', 'ka_dept_acc' => 'bg-sky-50 text-sky-700 border border-sky-200',
+                    'ka_div'                 => 'bg-indigo-50 text-indigo-700 border border-indigo-200',
+                    'ka_dept'                => 'bg-sky-50 text-sky-700 border border-sky-200',
                     'ka_sie'                 => 'bg-teal-50 text-teal-700 border border-teal-200',
-                    'accounting'             => 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-                    'fin_dir', 'man_dir', 'pres_dir' => 'bg-amber-50 text-amber-700 border border-amber-200',
+                    'fin_dir', 'man_dir', 'prod_dir', 'pres_dir' => 'bg-amber-50 text-amber-700 border border-amber-200',
                     default                  => 'bg-slate-50 text-slate-600 border border-slate-200',
                 } }}">
                 {{ match($user->role) {
                     'staff'       => 'Staff',
                     'ka_sie'      => 'Ka. Seksi',
                     'ka_dept'     => 'Ka. Dept',
-                    'ka_dept_acc' => 'Ka. Dept (Acc)',
                     'ka_div'      => 'Ka. Div',
-                    'ka_div_acc'  => 'Ka. Div (Acc)',
-                    'accounting'  => 'Accounting',
                     'fin_dir'     => 'Fin. Director',
                     'man_dir'     => 'Man. Director',
+                    'prod_dir'    => 'Prod. Director',
                     'pres_dir'    => 'Pres. Director',
                     default       => $user->role
                 } }}
             </span>
         </div>
         <div class="flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-slate-50">
-            <span>{{ $user->department?->dept_name ?? '—' }} · {{ $user->created_at->format('d M Y') }}</span>
+            <div>
+                <span>{{ $user->department?->dept_name ?? '—' }}</span>
+                @if($user->section)
+                    <span class="block text-[10px]">{{ $user->section }}</span>
+                @endif
+                <span class="block mt-0.5">{{ $user->created_at->format('d M Y') }}</span>
+            </div>
             <div class="flex items-center gap-2">
                 <a href="{{ route('superadmin.users.edit', $user) }}" class="p-2 rounded-lg text-violet-500 bg-violet-50 active:bg-violet-100">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>

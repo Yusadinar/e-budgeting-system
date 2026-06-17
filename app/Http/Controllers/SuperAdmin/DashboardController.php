@@ -25,7 +25,7 @@ class DashboardController extends Controller
         $totalPengajuanAktif = ProposalHarga::whereIn('status', ['Draft', 'In_Review'])->count();
 
         // ── Budget per Departemen (untuk bar chart) ──────────
-        $deptBudgets = Department::with(['currentBudget'])
+        $deptBudgets = Department::with(['currentBudget', 'costCenters.currentBudget'])
             ->get()
             ->map(function ($dept) {
                 // Shorten name mapping
@@ -47,9 +47,9 @@ class DashboardController extends Controller
                 return [
                     'name'       => $dept->dept_name,
                     'short_name' => $shortName,
-                    'plan'       => (float) ($dept->currentBudget?->total_plan ?? 0),
-                    'used'       => (float) ($dept->currentBudget?->total_used ?? 0),
-                    'reserved'   => (float) ($dept->currentBudget?->total_reserved ?? 0),
+                    'plan'       => (float) $dept->total_plan,
+                    'used'       => (float) $dept->total_used,
+                    'reserved'   => (float) $dept->total_reserved,
                 ];
             });
 

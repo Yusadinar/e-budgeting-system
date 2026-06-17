@@ -1,0 +1,75 @@
+# PRODUCT REQUIREMENTS DOCUMENT (PRD)
+# Feature: Modul Pengajuan & Cetak Internal Agreement (IA)
+# Project: EstABLISH E-Budgeting System
+# Tech Stack: Laravel 11, Tailwind CSS v4, Alpine.js
+
+## 1. OBJECTIVE
+Membangun antarmuka untuk pembuatan (Form Input) dan tampilan cetak (Printable View) dokumen Internal Agreement (IA). Sistem harus secara otomatis menarik data dari dokumen Proposal Harga (PH) yang telah berstatus 'Approved' untuk meminimalisir entri data berulang, dan mencetak dokumen sesuai format fisik standar PT INTI PANTJA PRESS INDUSTRI.
+
+## 2. STYLING & UI/UX GUIDELINES
+- Framework: Tailwind CSS v4.
+- Typography: 'Poppins' untuk UI Web, font Serif/Arial standar untuk tampilan cetak (`@media print`).
+- Aesthetic: Clean, modern, form terbagi dalam card/sections.
+- Layout: Mobile-First untuk entri data. Pada saat memilih referensi PH, gunakan modal atau select2/combo-box yang interaktif.
+
+## 3. UI LAYOUT: FORM INPUT (DATA ENTRY)
+Karena IA adalah kelanjutan dari PH, langkah pertama form adalah **"Select Approved PH"**. Setelah dipilih, form di bawahnya akan terisi otomatis (Auto-fill).
+
+### Section A: Dokumen Referensi & Meta (Auto-fill & Editable)
+- Field [Select/Search]: Pilih No. PH (hanya menampilkan status 'Approved').
+- Field [Readonly]: No. IA (Auto-generate: XXX/IA/IPPI/Bulan/Tahun).
+- Field [Readonly]: Tgl. Reg Sect, Tgl. Reg Bgt (Otomatis tanggal hari ini).
+- Field [Text]: Divisi/Dept, Section, Cost Center.
+- Field [Text]: No. FR/IO/MATNUM (Nomor dokumen SAP) dan field opsional "REG: [nomor reg]".
+- Field [Text]: No. Asset (Jika ada).
+
+### Section B: Data Supplier & Hasil Negosiasi (Readonly - Tarik dari PH)
+- Field [Readonly]: Supplier/Contractor Yang Dipilih.
+- Field [Readonly]: Hasil Negosiasi Harga - No (Nomor referensi negosiasi/PH).
+- Field [Readonly]: Tanggal (Tanggal kesepakatan).
+- Field [Readonly]: Nilai (Total harga final dalam Rupiah).
+
+### Section C: Tabel Jenis Permintaan (Dynamic Data)
+- Data ditarik dari item PH terpilih, namun user bisa menambahkan catatan.
+- Kolom:
+  - NO
+  - JENIS PERMINTAAN (Otomatis dari Description PH, letakkan judul/subject PH di baris pertama).
+  - JUMLAH (QTY)
+  - HARGA (Unit Price final dari Vendor terpilih).
+  - TOTAL HARGA
+  - ALASAN KEBUTUHAN / LAMPIRAN (Text input baru bagi user untuk mengisi referensi seperti "PH NO: ...", "MEMO: ...", atau keterangan operasional seperti "April 2026, Welding housing kurang...").
+
+### Section D: Approval Setup
+- Tampilkan informasi matrix approval yang dibutuhkan sesuai format: Pemohon (Ka. Sie terkait, Ka. Dept terkait), Disetujui Oleh (Ka. Div terkait, Ka. Dept FA, Production Director, Finance Director).
+
+## 4. UI LAYOUT: PRINTABLE VIEW (A4 DOCUMENT)
+Tampilan harus menggunakan CSS `@media print` dan mereplikasi struktur baris dan kolom pada gambar referensi fisik.
+
+### Komponen Cetak:
+1. Header Kiri (Border Box):
+   - Logo IPPI & Nama Perusahaan.
+   - List Key-Value: DIVISI/DEPT, SECTION, TGL. REG. SECT., TGL. REG. BGT., COST CENTER, NO. FR/IO, NO. ASSET.
+2. Header Tengah:
+   - Teks Bold & Underline: "INTERNAL AGREEMENT"
+   - Teks: "NO. : [Data No IA]"
+3. Header Kanan (Border Box):
+   - Kotak atas: "SUPPLIER/CONTRACTOR YANG DIPILIH:" beserta nama vendor.
+   - Kotak bawah: "HASIL NEGOSIASI HARGA", "NO. :", "TANGGAL :", "NILAI : Rp [Nominal]".
+4. Tabel Utama:
+   - Header Baris 1: Teks "MOHON AGAR DAPAT DISETUJUI PERMOHONAN DIBAWAH INI:" diletakkan tepat di atas tabel.
+   - Header Tabel: NO | JENIS PERMINTAAN | JUMLAH | HARGA | TOTAL HARGA | ALASAN KEBUTUHAN/LAMPIRAN.
+   - Isi Tabel: Tampilkan detail item. Pastikan kolom "JUMLAH", "HARGA", dan "TOTAL HARGA" memiliki lebar yang fix dan disejajarkan ke kanan (text-right) untuk angka.
+   - Footer Tabel: Baris bertuliskan "TOTAL" dengan total nominal di kolom "TOTAL HARGA". Di kolom paling kanan sediakan space untuk "DISKON / TOTAL : [Nominal]".
+5. Footer (Grid Tanda Tangan & Registrasi):
+   - Tabel Grid yang membentang penuh di bawah.
+   - Kolom 1-2 (PEMOHON): Ka. Sie terkait, Ka. Dept terkait.
+   - Kolom 3-6 (DISETUJUI OLEH): Ka. Div terkait, Ka. Dept FA, Production Director, Finance Director.
+   - Kolom 7 (KETERANGAN): Kotak untuk bagian REGISTRASI (NO REGIS, TGL REGIS).
+
+## 5. HYBRID APPROVAL FEATURE (QR CODE INTEGRATION)
+- Tempatkan QR Code (80x80px) di area kosong dekat header tengah atau di bagian "KETERANGAN" footer.
+- QR Code menyimpan URL verifikasi/approval untuk discan oleh para stakeholder: `https://[app-url]/approve-ia/[qr_token]`.
+- Pada web app, sediakan action buttons: "Save Draft", "Submit IA", "Print IA". (Catatan: "Submit IA" akan men-trigger pemotongan budget di database).
+
+## 6. INTRUKSI UNTUK AI AGENT:
+1. Buat

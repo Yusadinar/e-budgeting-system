@@ -81,7 +81,7 @@ class AnnualBudgetSeeder extends Seeder
             $dept = Department::where('budget_code', $code)->first();
             if (! $dept) continue;
 
-            AnnualBudget::firstOrCreate(
+            AnnualBudget::updateOrCreate(
                 [
                     'dept_id'     => $dept->id,
                     'fiscal_year' => $year,
@@ -90,6 +90,7 @@ class AnnualBudgetSeeder extends Seeder
                     'total_plan'     => $data['total_plan'],
                     'total_used'     => $data['total_used'],
                     'total_reserved' => $data['total_reserved'],
+                    'cost_center_id' => null,
                 ]
             );
         }

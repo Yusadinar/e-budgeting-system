@@ -22,24 +22,33 @@ class DepartmentController extends Controller
     {
         $year = $request->input('year', now()->year);
 
-        $departments = Department::with(['annualBudgets' => function ($q) use ($year) {
-                $q->where('fiscal_year', $year);
-            }])
+        $departments = Department::with([
+                'annualBudgets' => fn ($q) => $q->where('fiscal_year', $year),
+                'costCenters.annualBudgets' => fn ($q) => $q->where('fiscal_year', $year)
+            ])
             ->withCount('users')
             ->orderBy('dept_name')
             ->get()
             ->map(function ($dept) use ($year) {
-                $budget = $dept->annualBudgets->first();
-                $plan   = (float) ($budget?->total_plan   ?? 0);
-                $used   = (float) ($budget?->total_used   ?? 0);
-                $rsv    = (float) ($budget?->total_reserved ?? 0);
-                $sisa   = $plan - $used - $rsv;
-                $pct    = $plan > 0 ? round(($used / $plan) * 100, 1) : 0;
-
                 // Jumlah pengajuan aktif untuk dept ini
                 $pengajuanAktif = ProposalHarga::whereHas('ppbj.user', fn($q) => $q->where('dept_id', $dept->id))
                     ->whereIn('status', ['Draft', 'In_Review'])
                     ->count();
+
+                $budget = $dept->annualBudgets->first();
+                $deptPlan = $budget ? $budget->total_plan : 0;
+                $deptUsed = $budget ? $budget->total_used : 0;
+                $deptReserved = $budget ? $budget->total_reserved : 0;
+
+                $ccPlan = $dept->costCenters->reduce(fn($c, $cc) => $c + ($cc->annualBudgets->first() ? $cc->annualBudgets->first()->total_plan : 0), 0);
+                $ccUsed = $dept->costCenters->reduce(fn($c, $cc) => $c + ($cc->annualBudgets->first() ? $cc->annualBudgets->first()->total_used : 0), 0);
+                $ccReserved = $dept->costCenters->reduce(fn($c, $cc) => $c + ($cc->annualBudgets->first() ? $cc->annualBudgets->first()->total_reserved : 0), 0);
+
+                $plan = $deptPlan + $ccPlan;
+                $used = $deptUsed + $ccUsed;
+                $rsv = $deptReserved + $ccReserved;
+                $sisa   = $plan - $used - $rsv;
+                $pct    = $plan > 0 ? round(($used / $plan) * 100, 1) : 0;
 
                 return [
                     'id'             => $dept->id,
@@ -71,9 +80,25 @@ class DepartmentController extends Controller
     {
         $year = $request->input('year', now()->year);
 
-        $budget = $department->annualBudgets()
+        $deptBudget = $department->annualBudgets()->where('fiscal_year', $year)->first();
+        
+        $costCenterBudgets = \App\Models\AnnualBudget::whereIn('cost_center_id', $department->costCenters()->pluck('id'))
             ->where('fiscal_year', $year)
-            ->first();
+            ->get();
+
+        $totalPlan = ($deptBudget ? $deptBudget->total_plan : 0) + $costCenterBudgets->sum('total_plan');
+        $totalUsed = ($deptBudget ? $deptBudget->total_used : 0) + $costCenterBudgets->sum('total_used');
+        $totalReserved = ($deptBudget ? $deptBudget->total_reserved : 0) + $costCenterBudgets->sum('total_reserved');
+
+        $budget = null;
+        if ($totalPlan > 0 || $deptBudget || $costCenterBudgets->count() > 0) {
+            $budget = (object) [
+                'total_plan' => $totalPlan,
+                'total_used' => $totalUsed,
+                'total_reserved' => $totalReserved,
+                'remaining' => $totalPlan - $totalUsed - $totalReserved,
+            ];
+        }
 
         // Realisasi per bulan (IA Approved)
         $realisasiBulanan = InternalAgreement::whereHas('proposalHarga.ppbj.user', function ($q) use ($department) {
@@ -100,12 +125,29 @@ class DepartmentController extends Controller
             ->withQueryString();
 
         // Statistik pengajuan
-        $statAktif    = ProposalHarga::whereHas('ppbj.user', fn($q) => $q->where('dept_id', $department->id))
-            ->whereIn('status', ['Draft', 'In_Review'])->count();
+        $statAktif = ProposalHarga::whereHas('ppbj.user', fn($q) => $q->where('dept_id', $department->id))
+            ->where(function ($query) {
+                $query->whereIn('status', ['Draft', 'In_Review'])
+                    ->orWhere(function ($q2) {
+                        $q2->where('status', 'Approved')
+                            ->whereDoesntHave('internalAgreement', function ($q3) {
+                                $q3->whereIn('status_ia', ['Approved', 'Rejected']);
+                            });
+                    });
+            })->count();
+
         $statApproved = ProposalHarga::whereHas('ppbj.user', fn($q) => $q->where('dept_id', $department->id))
-            ->where('status', 'Approved')->count();
+            ->whereHas('internalAgreement', function ($query) {
+                $query->where('status_ia', 'Approved');
+            })->count();
+
         $statRejected = ProposalHarga::whereHas('ppbj.user', fn($q) => $q->where('dept_id', $department->id))
-            ->where('status', 'Rejected')->count();
+            ->where(function ($query) {
+                $query->where('status', 'Rejected')
+                    ->orWhereHas('internalAgreement', function ($q2) {
+                        $q2->where('status_ia', 'Rejected');
+                    });
+            })->count();
 
         // Anggota departemen
         $members = User::where('dept_id', $department->id)
@@ -125,12 +167,33 @@ class DepartmentController extends Controller
         }
         $logs = $logsQuery->orderByDesc('created_at')->paginate(10)->withQueryString();
 
+        $costCenterBudgets = \App\Models\CostCenter::where('dept_id', $department->id)
+            ->with(['currentBudget'])
+            ->get()
+            ->map(function ($cc) {
+                $plan = (float)($cc->currentBudget?->total_plan ?? 0);
+                $used = (float)($cc->currentBudget?->total_used ?? 0);
+                $reserved = (float)($cc->currentBudget?->total_reserved ?? 0);
+                $sisa = $plan - $used - $reserved;
+                $utilization = $plan > 0 ? round(($used / $plan) * 100, 1) : 0;
+
+                return [
+                    'code' => $cc->cost_center_code,
+                    'name' => $cc->cost_center_name,
+                    'plan' => $plan,
+                    'used' => $used,
+                    'sisa' => $sisa,
+                    'utilization' => $utilization,
+                ];
+            })
+            ->sortByDesc('utilization');
+
         return view('director.departments.show', compact(
             'department', 'budget', 'year',
             'labels', 'dataRealisasi',
             'pengajuanList',
             'statAktif', 'statApproved', 'statRejected',
-            'members', 'logs'
+            'members', 'logs', 'costCenterBudgets'
         ));
     }
 }

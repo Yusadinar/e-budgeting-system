@@ -2,7 +2,7 @@
 // routes/web.php
 
 use App\Http\Controllers\ApprovalController;
-use App\Http\Controllers\BudgetController;
+
 use App\Http\Controllers\BudgetUploadController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PengajuanController;
@@ -47,27 +47,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
+    Route::get('/budget-logs', [\App\Http\Controllers\BudgetLogController::class, 'index'])
+        ->name('budget-logs.index');
+
     // Director monitoring dashboard
     Route::get('/director/dashboard', [Dir\DashboardController::class, 'index'])
         ->name('director.dashboard')
-        ->middleware('role:man_dir,fin_dir,pres_dir');
+        ->middleware('role:man_dir,fin_dir,prod_dir,pres_dir');
 
     // Director department monitoring
     Route::prefix('director/departments')
         ->name('director.departments.')
-        ->middleware('role:man_dir,fin_dir,pres_dir')
+        ->middleware('role:man_dir,fin_dir,prod_dir,pres_dir')
         ->group(function () {
             Route::get('/', [Dir\DepartmentController::class, 'index'])->name('index');
             Route::get('/{department}', [Dir\DepartmentController::class, 'show'])->name('show');
         });
 
-    // ----------------------------------------------------------
-    // BUDGET
-    // ----------------------------------------------------------
-    Route::prefix('budget')->name('budget.')->group(function () {
-        Route::get('/create', [BudgetController::class, 'create'])->name('create');
-        Route::post('/', [BudgetController::class, 'store'])->name('store');
-    });
+
 
     // ----------------------------------------------------------
     // BUDGET UPLOAD (Excel Template — Ka.Dept only)
@@ -112,13 +109,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{ppbj}/detail', [PengajuanController::class, 'showPpbj'])
             ->name('show-ppbj');
 
+        // Batalkan / Hapus PPBJ
+        Route::delete('/{ppbj}', [PengajuanController::class, 'destroyPpbj'])
+            ->name('destroy-ppbj');
+
         // Step 2 — Proposal Harga
         // {ppbj} = ID PPBJ yang baru dibuat di step 1
-        Route::get('/{ppbj}/proposal-harga', [PengajuanController::class, 'createPh'])
+        Route::get('/{ppbj}/proposal-harga', [\App\Http\Controllers\ProposalHargaController::class, 'create'])
             ->name('create-ph');
 
-        Route::post('/{ppbj}/proposal-harga', [PengajuanController::class, 'storePh'])
+        Route::post('/{ppbj}/proposal-harga', [\App\Http\Controllers\ProposalHargaController::class, 'store'])
             ->name('store-ph');
+            
+        Route::get('/proposal-harga/{proposalHarga}/print', [\App\Http\Controllers\ProposalHargaController::class, 'print'])
+            ->name('print-ph');
 
         // Step 3 — Internal Agreement
         // {proposalHarga} = ID PH yang baru dibuat di step 2
@@ -127,6 +131,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::post('/{proposalHarga}/internal-agreement', [PengajuanController::class, 'storeIa'])
             ->name('store-ia');
+
+        // Print IA (Printable Document View)
+        Route::get('/internal-agreement/{ia}/print', [PengajuanController::class, 'printIa'])
+            ->name('print-ia');
     });
 
     // ----------------------------------------------------------
@@ -161,6 +169,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // ----------------------------------------------------------
+    // API: Cost Center (Async Dropdown)
+    // ----------------------------------------------------------
+    Route::prefix('api/cost-centers')->name('api.cost-centers.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\CostCenterController::class, 'index'])->name('index');
+        Route::get('/departments', [\App\Http\Controllers\Api\CostCenterController::class, 'departments'])->name('departments');
+        Route::get('/budget-info', [\App\Http\Controllers\Api\CostCenterController::class, 'budgetInfo'])->name('budget-info');
+    });
+
+    // ----------------------------------------------------------
     // SUPERADMIN PANEL
     // ----------------------------------------------------------
     Route::prefix('superadmin')
@@ -173,6 +190,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('budget', [SA\BudgetOverviewController::class, 'index'])->name('budget.index');
             Route::get('budget/{department}', [SA\BudgetOverviewController::class, 'show'])->name('budget.show');
             Route::get('audit', [SA\AuditLogController::class, 'index'])->name('audit.index');
+
+            // Cost Center Management
+            Route::resource('cost-centers', SA\CostCenterController::class)->except(['show']);
         });
 
 });

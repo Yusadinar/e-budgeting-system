@@ -1,0 +1,80 @@
+# PRODUCT REQUIREMENTS DOCUMENT (PRD)
+# Feature: Modul Pengajuan & Cetak Proposal Harga (PH)
+# Project: EstABLISH E-Budgeting System
+# Tech Stack: Laravel 11, Tailwind CSS v4, Alpine.js (untuk dynamic UI)
+
+## 1. OBJECTIVE
+Membangun halaman antarmuka untuk pembuatan (Form Input) dan tampilan cetak (Printable View) dokumen Proposal Harga (PH) yang mereplikasi format fisik PT INTI PANTJA PRESS INDUSTRI (IPPI), dengan tambahan fitur modern (Mobile-first, Hybrid QR Code Approval).
+
+## 2. STYLING & UI/UX GUIDELINES
+- Framework: Tailwind CSS v4.
+- Typography: Gunakan font 'Poppins' untuk elemen UI/Dashboard, dan font serif/formal standar (seperti Times New Roman atau Arial) khusus untuk area 'Printable View'.
+- Aesthetic: Clean, minimalist, modern. Gunakan soft borders (border-slate-200), white background untuk form cards, dan sedikit sentuhan glassmorphism pada sticky navbar/action buttons.
+- Layout: Wajib Mobile-First untuk Form Input. Elemen tabel input harus menggunakan sistem 'card' atau horizontal scroll di layar kecil.
+
+## 3. UI LAYOUT: FORM INPUT (DATA ENTRY)
+Buat halaman form terstruktur yang dibagi menjadi beberapa section (Card/Accordion) agar user tidak kewalahan.
+
+### Section A: Header Information (Meta Data)
+- Field [Readonly/Auto]: No. PH (Format: XXX/PURCH/IPPI/Bulan/Tahun), Date (Tanggal Register).
+- Field [Select]: Type (contoh: SPAREPART), Divisi/Dept, Seksi.
+- Field [Text]: Cost Center, No. IO/Asset, Budget (Status).
+- Field [Text/Textarea]: SUBJECT (Judul Pengajuan PH).
+
+### Section B: Item & Vendor Bidding (Dynamic Rows)
+Gunakan Alpine.js untuk fitur "Add Row".
+- Kolom Item: No, Description, QTY, UOM.
+- Kolom "LAST ORDER" (Referensi Historis): Price Per, Vendor, Year.
+- Kolom "VENDOR PENAWARAN" (Vendor Baru): Unit Price, Final Price, Total.
+- Fitur "Add Vendor": Memungkinkan perbandingan lebih dari 1 vendor (meski di cetakan akhir fokus pada pemenang).
+
+### Section C: Term & Conditions
+- Field [Text/Select]: Delivery (Waktu pengiriman, ex: 3 DAYS).
+- Field [Text]: Quality (ex: NO PROBLEM).
+- Field [Text]: Payment (ex: 45 DAYS AFTER INVOICE).
+- Field [Text]: Experience Non IPPI.
+
+### Section D: Approval & Execution Setup
+- Field [Text]: Nama Preparer, Negosiator, Menyetujui.
+- Field [Select]: Pilih "Vendor Yang Dipilih" dari list vendor penawaran di Section B.
+- Sistem otomatis menghitung Total Nilai (Rp) dari vendor terpilih.
+
+## 4. UI LAYOUT: PRINTABLE VIEW (A4 DOCUMENT)
+Buat halaman khusus (atau modal) yang menggunakan CSS `@media print`. Tampilannya harus SANGAT MIRIP dengan referensi fisik.
+
+### Komponen Cetak:
+1. Header Kiri: 
+   - Logo Perusahaan (Placeholder) & Teks "INTI PANTJA PRESS INDUSTRI".
+   - Teks "Procurement & Import Department / Purchasing Section".
+   - SUBJECT: [Data Subject].
+2. Header Tengah: 
+   - Judul: "Proposal Harga".
+   - No.: [Data Nomor PH].
+3. Header Kanan (Tabel Meta Kecil):
+   - Tabel berisi: TYPE, DIV/DEPT, SEKSI, TGL REGISTER, COST CENTER, NO IO/ASSET, BUDGET. Terdapat text "FISM-PUR-02-08-01" di atas tabel ini.
+4. Tabel Utama:
+   - Header terbagi 2 tingkat. Tingkat 1: Meta, LAST ORDER, [NAMA VENDOR TERPILIH].
+   - Kolom: No | DESCRIPTION | QTY | UOM | (Under Last Order) PRICE PER | VENDOR | YEAR | (Under Vendor) UNIT PRICE | FINAL | TOTAL.
+   - Baris Bawah Tabel: TOTAL, DELIVERY, QUALITY, PAYMENT, EXPERIENCE NON IPPI.
+5. Footer Kiri:
+   - Blok teks untuk "Prepare, Negosiator, Menyetujui".
+   - Tabel "VENDOR / SUPPLIER YANG DIPILIH": Menampilkan Nama Vendor dan Total Rp.
+   - Tabel Matrix Approval (Keterangan):
+     - <= Rp 100.000.000 (Ka. Dept)
+     - > 100M - 600M (Direktur FA & HCGS)
+     - > 600M (President Dir)
+6. Footer Kanan (Tanda Tangan):
+   - Lokasi & Tanggal: "Bekasi, [Tanggal]".
+   - Tabel Grid Tanda Tangan: Prepared, Checked, Approved.
+   - Jabatan di bawah kotak: Ka. Sie Purc., Ka. Sie Proc., Ka. Dept Proc & Import, Ka. Div FA & Proc, Direktur FA & HCGS, Presiden Direktur.
+
+## 5. HYBRID APPROVAL FEATURE (QR CODE INTEGRATION)
+- Generate sebuah QR Code ukuran 80x80px yang ditempatkan di sudut kanan atas dokumen cetak (atau di dekat area grid tanda tangan).
+- QR Code berisi URL unik: `https://[app-url]/approve-ph/[qr_token]`.
+- Di UI web, sediakan tombol floating (Action Bar) dengan opsi: "Save as Draft", "Submit for Approval", dan "Print Document".
+
+## 6. INTRUKSI UNTUK AI AGENT:
+1. Buat `ProposalHargaController` yang menangani logika form dinamis.
+2. Buat file Blade `create.blade.php` untuk Form Input.
+3. Buat file Blade `print.blade.php` menggunakan Tailwind utilities yang dimaksimalkan untuk layout kertas A4 (gunakan class `w-[210mm] min-h-[297mm] mx-auto bg-white text-black p-8 text-sm`).
+4. Buat komponen tabel dengan border solid hitam (border-black) KHUSUS untuk halaman cetak agar mirip dokumen resmi.

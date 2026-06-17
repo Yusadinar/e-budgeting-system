@@ -46,103 +46,23 @@ class TrackingController extends Controller
 
         $pendingApprovals = collect();
 
-        // Cari dokumen yang butuh approval jika user adalah approver
-        if ($user->canApprove()) {
-            $role = $user->role;
-            $deptId = $user->dept_id;
+        // Ambil daftar dokumen yang butuh tindakan user (approve / buat dokumen)
+        $allPendingPpbjIds = $user->getPendingActionPpbjIds();
 
-            // PPBJ Pending
-            $pendingPpbjIds = \App\Models\Ppbj::where('status', 'In_Review')
-                ->where(function($q) use ($user, $deptId) {
-                    if ($user->isKaDept()) {
-                        $q->orWhere(function($q1) use ($deptId) {
-                            $q1->where('approval_step', 1)->whereHas('user', fn($q2) => $q2->where('dept_id', $deptId));
-                        });
-                    }
-                    if ($user->isKaDiv()) {
-                        $q->orWhere('approval_step', 2);
-                    }
-                    if ($user->isAccounting()) {
-                        $q->orWhere('approval_step', 3);
-                    }
-                    if (!$user->isKaDept() && !$user->isKaDiv() && !$user->isAccounting()) {
-                        $q->where('id', 0);
-                    }
-                })
-                ->pluck('id');
+        if ($allPendingPpbjIds->isNotEmpty()) {
+            $pendingQuery = Ppbj::with([
+                'user.department',
+                'latestProposalHarga.internalAgreement',
+            ])->whereIn('id', $allPendingPpbjIds);
 
-            // PH Pending
-            $pendingPhPpbjIds = \App\Models\ProposalHarga::where('status', 'In_Review')
-                ->where(function($q) use ($user, $deptId) {
-                    if ($user->isKaDept()) {
-                        $q->orWhere(function($q1) use ($deptId) {
-                            $q1->where('approval_step', 1)->whereHas('ppbj.user', fn($q2) => $q2->where('dept_id', $deptId));
-                        });
-                    }
-                    if ($user->isKaDiv()) {
-                        $q->orWhere('approval_step', 2);
-                    }
-                    if ($user->isAccounting()) {
-                        $q->orWhere('approval_step', 3);
-                    }
-                    if (!$user->isKaDept() && !$user->isKaDiv() && !$user->isAccounting()) {
-                        $q->where('id', 0);
-                    }
-                })
-                ->pluck('ppbj_id');
-
-            // IA Pending
-            $pendingIaPpbjIds = \App\Models\InternalAgreement::where('status_ia', 'In_Review')
-                ->where(function($q) use ($user, $deptId) {
-                    if ($user->isKaDept()) {
-                        $q->orWhere(function($q1) use ($deptId) {
-                            $q1->where('approval_step', 1)->whereHas('proposalHarga.ppbj.user', fn($q2) => $q2->where('dept_id', $deptId));
-                        });
-                    }
-                    if ($user->isKaDiv()) {
-                        $q->orWhere('approval_step', 2);
-                    }
-                    if ($user->isKaDeptAcc()) {
-                        $q->orWhere('approval_step', 3);
-                    }
-                    if ($user->isKaDivAcc()) {
-                        $q->orWhere('approval_step', 4);
-                    }
-                    if ($user->isFinDir()) {
-                        $q->orWhere('approval_step', 5);
-                    }
-                    if ($user->isManDir()) {
-                        $q->orWhere('approval_step', 6);
-                    }
-                    if ($user->isPresDir()) {
-                        $q->orWhere('approval_step', 7);
-                    }
-                    if (!$user->canApprove()) {
-                        $q->where('id', 0);
-                    }
-                })
-                ->with('proposalHarga') // Eager load
-                ->get()
-                ->pluck('proposalHarga.ppbj_id')
-                ->filter();
-
-            $allPendingPpbjIds = $pendingPpbjIds->merge($pendingPhPpbjIds)->merge($pendingIaPpbjIds)->unique();
-
-            if ($allPendingPpbjIds->isNotEmpty()) {
-                $pendingQuery = Ppbj::with([
-                    'user.department',
-                    'latestProposalHarga.internalAgreement',
-                ])->whereIn('id', $allPendingPpbjIds);
-
-                if (isset($applySearch)) {
-                    $applySearch($pendingQuery);
-                }
-
-                $pendingApprovals = $pendingQuery->latest()->get();
-
-                // Keluarkan dokumen yang masuk pending approval dari daftar pengajuan reguler agar tidak double
-                $query->whereNotIn('id', $allPendingPpbjIds);
+            if (isset($applySearch)) {
+                $applySearch($pendingQuery);
             }
+
+            $pendingApprovals = $pendingQuery->latest()->get();
+
+            // Keluarkan dokumen yang masuk pending approval dari daftar pengajuan reguler agar tidak double
+            $query->whereNotIn('id', $allPendingPpbjIds);
         }
 
         $pengajuan = $query->latest()->paginate(10, ['*'], 'page')->withQueryString();
@@ -223,47 +143,76 @@ class TrackingController extends Controller
         $ppbjStep = (int) $ppbj->approval_step;
         $ppbjStatus = $ppbj->status;
 
+        $timeline[] = ['type' => 'divider', 'label' => 'TAHAP PPBJ'];
         $timeline[] = $this->makeNode('Pengajuan PPBJ', 'Dibuat oleh ' . $ppbj->user->name, $ppbj->created_at, 'done');
-        $timeline[] = $this->makeNode('Review Ka. Dept (PPBJ)', 'Menunggu persetujuan', $ppbjStep > 1 ? $ppbj->updated_at : null, $this->nodeStatus($ppbjStatus, $ppbjStep, 1));
-        $timeline[] = $this->makeNode('Review Ka. Divisi (PPBJ)', 'Menunggu persetujuan', $ppbjStep > 2 ? $ppbj->updated_at : null, $this->nodeStatus($ppbjStatus, $ppbjStep, 2));
-        $timeline[] = $this->makeNode('Review Accounting (PPBJ)', 'Menunggu persetujuan', $ppbjStep > 3 ? $ppbj->updated_at : null, $this->nodeStatus($ppbjStatus, $ppbjStep, 3));
+        $timeline[] = $this->makeNode('Review Ka. Dept Terkait', 'Menunggu persetujuan', $ppbjStep > 1 ? $ppbj->updated_at : null, $this->nodeStatus($ppbjStatus, $ppbjStep, 1));
+        $timeline[] = $this->makeNode('Review Ka. Sie Purc.', 'Menunggu persetujuan', $ppbjStep > 2 ? $ppbj->updated_at : null, $this->nodeStatus($ppbjStatus, $ppbjStep, 2));
+        $timeline[] = $this->makeNode('Review Ka. Div Finance', 'Menunggu persetujuan', $ppbjStep > 3 ? $ppbj->updated_at : null, $this->nodeStatus($ppbjStatus, $ppbjStep, 3));
+        
+        $range = $ppbj->budget_amount_range;
+        if ($range === '50m_to_100m' || in_array($range, ['100m_to_500m', '500m_to_1b', 'over_1b'])) {
+            $timeline[] = $this->makeNode('Review Finance Director', 'Menunggu persetujuan', $ppbjStep > 4 ? $ppbj->updated_at : null, $this->nodeStatus($ppbjStatus, $ppbjStep, 4));
+        }
+        if (in_array($range, ['100m_to_500m', '500m_to_1b', 'over_1b'])) {
+            $timeline[] = $this->makeNode('Review President Director', 'Menunggu persetujuan', $ppbjStep > 5 ? $ppbj->updated_at : null, $this->nodeStatus($ppbjStatus, $ppbjStep, 5));
+        }
 
         // --- PH STAGE ---
+        $timeline[] = ['type' => 'divider', 'label' => 'TAHAP PROPOSAL HARGA'];
         if ($ph) {
             $phStep = (int) $ph->approval_step;
             $phStatus = $ph->status;
+            $nominal = (float) $ph->nominal_request;
 
-            $timeline[] = $this->makeNode('Pengajuan PH', 'Dibuat oleh ' . $ppbj->user->name, $ph->created_at, 'done');
-            $timeline[] = $this->makeNode('Review Ka. Dept (PH)', 'Menunggu persetujuan', $phStep > 1 ? $ph->updated_at : null, $this->nodeStatus($phStatus, $phStep, 1));
-            $timeline[] = $this->makeNode('Review Ka. Divisi (PH)', 'Menunggu persetujuan', $phStep > 2 ? $ph->updated_at : null, $this->nodeStatus($phStatus, $phStep, 2));
-            $timeline[] = $this->makeNode('Review Accounting (PH)', 'Menunggu persetujuan', $phStep > 3 ? $ph->updated_at : null, $this->nodeStatus($phStatus, $phStep, 3));
+            $timeline[] = $this->makeNode('Pengajuan PH', 'Dibuat oleh ' . ($ph->preparer_name ?? 'Purchasing'), $ph->created_at, 'done');
+            $timeline[] = $this->makeNode('Review Ka. Sie Purc.', 'Menunggu persetujuan', $phStep > 1 ? $ph->updated_at : null, $this->nodeStatus($phStatus, $phStep, 1));
+            $timeline[] = $this->makeNode('Review Ka. Sie Proc.', 'Menunggu persetujuan', $phStep > 2 ? $ph->updated_at : null, $this->nodeStatus($phStatus, $phStep, 2));
+            $timeline[] = $this->makeNode('Review Ka. Dept Proc & Import', 'Menunggu persetujuan', $phStep > 3 ? $ph->updated_at : null, $this->nodeStatus($phStatus, $phStep, 3));
+            $timeline[] = $this->makeNode('Review Ka. Div FA & Proc', 'Menunggu persetujuan', $phStep > 4 ? $ph->updated_at : null, $this->nodeStatus($phStatus, $phStep, 4));
+
+            if ($nominal > 100000000) {
+                $timeline[] = $this->makeNode('Review Direktur FA & HCGS', 'Menunggu persetujuan', $phStep > 5 ? $ph->updated_at : null, $this->nodeStatus($phStatus, $phStep, 5));
+            }
+            if ($nominal > 600000000) {
+                $timeline[] = $this->makeNode('Review Presiden Direktur', 'Menunggu persetujuan', $phStep > 6 ? $ph->updated_at : null, $this->nodeStatus($phStatus, $phStep, 6));
+            }
         } else {
             $timeline[] = $this->makeNode('Pengajuan PH', 'Belum diajukan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Ka. Dept (PH)', 'Menunggu persetujuan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Ka. Divisi (PH)', 'Menunggu persetujuan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Accounting (PH)', 'Menunggu persetujuan', null, 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Sie Purc.', 'Menunggu persetujuan', null, 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Sie Proc.', 'Menunggu persetujuan', null, 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Dept Proc & Import', 'Menunggu persetujuan', null, 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Div FA & Proc', 'Menunggu persetujuan', null, 'pending');
+            
+            $range = $ppbj->budget_amount_range;
+            if (in_array($range, ['100m_to_500m', '500m_to_1b', 'over_1b'])) {
+                $timeline[] = $this->makeNode('Review Direktur FA & HCGS', 'Menunggu persetujuan', null, 'pending');
+            }
+            if (in_array($range, ['over_1b', '500m_to_1b'])) { 
+                 $timeline[] = $this->makeNode('Review Presiden Direktur', 'Menunggu persetujuan', null, 'pending');
+            }
         }
 
         // --- IA STAGE ---
+        $timeline[] = ['type' => 'divider', 'label' => 'TAHAP INTERNAL AGREEMENT'];
         if ($ia) {
             $iaStep = (int) $ia->approval_step;
             $iaStatus = $ia->status_ia;
 
-            $timeline[] = $this->makeNode('Pengajuan IA', 'Dibuat oleh ' . $ppbj->user->name, $ia->created_at, 'done');
-            $timeline[] = $this->makeNode('Review Ka. Dept (IA)', 'Menunggu persetujuan', $iaStep > 1 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 1));
-            $timeline[] = $this->makeNode('Review Ka. Divisi (IA)', 'Menunggu persetujuan', $iaStep > 2 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 2));
-            $timeline[] = $this->makeNode('Review Ka. Dept Accounting (IA)', 'Menunggu persetujuan', $iaStep > 3 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 3));
-            $timeline[] = $this->makeNode('Review Ka. Div Accounting (IA)', 'Menunggu persetujuan', $iaStep > 4 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 4));
+            $timeline[] = $this->makeNode('Pengajuan IA', 'Dibuat oleh Susan Anggraeni', $ia->created_at, 'done');
+            $timeline[] = $this->makeNode('Review Ka. Dept Pengaju (IA)', 'Menunggu persetujuan', $iaStep > 1 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 1));
+            $timeline[] = $this->makeNode('Review Ka. Div Pengaju (IA)', 'Menunggu persetujuan', $iaStep > 2 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 2));
+            $timeline[] = $this->makeNode('Review Ka. Dept Finance Accounting (IA)', 'Menunggu persetujuan', $iaStep > 3 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 3));
+            $timeline[] = $this->makeNode('Review Ka. Div Finance Accounting (IA)', 'Menunggu persetujuan', $iaStep > 4 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 4));
             $timeline[] = $this->makeNode('Review Finance Director (IA)', 'Menunggu persetujuan', $iaStep > 5 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 5));
             $timeline[] = $this->makeNode('Review Manufacture Director (IA)', 'Menunggu persetujuan', $iaStep > 6 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 6));
             $timeline[] = $this->makeNode('Review President Director (IA)', 'Menunggu persetujuan', $iaStep > 7 ? $ia->updated_at : null, $this->nodeStatus($iaStatus, $iaStep, 7));
             $timeline[] = $this->makeNode('Finalisasi (Realisasi Anggaran)', 'Anggaran dipotong', $iaStatus === 'Approved' ? $ia->updated_at : null, $iaStatus === 'Approved' ? 'done' : 'pending');
         } else {
             $timeline[] = $this->makeNode('Pengajuan IA', 'Belum diajukan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Ka. Dept (IA)', 'Menunggu persetujuan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Ka. Divisi (IA)', 'Menunggu persetujuan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Ka. Dept Accounting (IA)', 'Menunggu persetujuan', null, 'pending');
-            $timeline[] = $this->makeNode('Review Ka. Div Accounting (IA)', 'Menunggu persetujuan', null, 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Dept Pengaju (IA)', 'Menunggu persetujuan', null, 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Div Pengaju (IA)', 'Menunggu persetujuan', null, 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Dept Finance Accounting (IA)', 'Menunggu persetujuan', null, 'pending');
+            $timeline[] = $this->makeNode('Review Ka. Div Finance Accounting (IA)', 'Menunggu persetujuan', null, 'pending');
             $timeline[] = $this->makeNode('Review Finance Director (IA)', 'Menunggu persetujuan', null, 'pending');
             $timeline[] = $this->makeNode('Review Manufacture Director (IA)', 'Menunggu persetujuan', null, 'pending');
             $timeline[] = $this->makeNode('Review President Director (IA)', 'Menunggu persetujuan', null, 'pending');
@@ -276,6 +225,7 @@ class TrackingController extends Controller
     private function makeNode($label, $desc, $date, $status)
     {
         return [
+            'type' => 'node',
             'label' => $label,
             'description' => $desc,
             'date' => $date ? $date->format('d M Y, H:i') : null,

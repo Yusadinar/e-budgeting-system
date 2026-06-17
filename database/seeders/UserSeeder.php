@@ -60,6 +60,14 @@ class UserSeeder extends Seeder
                 'dept_id'           => $mfgIK?->id, // Primary dept: Manufacturing IKAR
                 'email_verified_at' => now(),
             ],
+            [
+                'name'              => 'Rina Finance',
+                'email'             => 'rina.finance@establish.dev',
+                'password'          => $defaultPw,
+                'role'              => 'ka_div',
+                'dept_id'           => $acc?->id, // Finance Accounting
+                'email_verified_at' => now(),
+            ],
 
             // ═══════════════════════════════════════════════════
             //  III. LEVEL DEPARTEMEN (Ka. Dept) - Plant IBEK
@@ -139,6 +147,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $mkt?->id,
+                'section'           => 'Existing Customer Marketing',
                 'email_verified_at' => now(),
             ],
             [
@@ -147,6 +156,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $mkt?->id,
+                'section'           => 'New business marketing',
                 'email_verified_at' => now(),
             ],
             [
@@ -155,6 +165,16 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $eng?->id,
+                'section'           => 'Engineering for stamping',
+                'email_verified_at' => now(),
+            ],
+            [
+                'name'              => 'Bayu Prabowo',
+                'email'             => 'bayu.prabowo@establish.dev',
+                'password'          => $defaultPw,
+                'role'              => 'ka_sie',
+                'dept_id'           => $eng?->id,
+                'section'           => 'Engineering for welding',
                 'email_verified_at' => now(),
             ],
             [
@@ -163,6 +183,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $mtcIB?->id,
+                'section'           => 'plant service',
                 'email_verified_at' => now(),
             ],
             [
@@ -171,6 +192,16 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $mtcIB?->id,
+                'section'           => 'Dies Making & Maintenance',
+                'email_verified_at' => now(),
+            ],
+            [
+                'name'              => 'Hery Styles',
+                'email'             => 'hery.styles@establish.dev',
+                'password'          => $defaultPw,
+                'role'              => 'ka_sie',
+                'dept_id'           => $mfgIB?->id,
+                'section'           => 'quality control IBEK',
                 'email_verified_at' => now(),
             ],
             [
@@ -179,6 +210,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $mfgIB?->id,
+                'section'           => 'produksi shift A',
                 'email_verified_at' => now(),
             ],
             [
@@ -187,6 +219,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $mfgIB?->id,
+                'section'           => 'produksi shift B',
                 'email_verified_at' => now(),
             ],
             [
@@ -195,6 +228,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $pplc?->id,
+                'section'           => 'PPC & IRM',
                 'email_verified_at' => now(),
             ],
             [
@@ -203,6 +237,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $pplc?->id,
+                'section'           => 'Logistic & delivery',
                 'email_verified_at' => now(),
             ],
 
@@ -215,6 +250,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $qms?->id,
+                'section'           => 'quality assurance & management system',
                 'email_verified_at' => now(),
             ],
             [
@@ -223,6 +259,25 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $mtcIK?->id,
+                'section'           => 'die maintenance',
+                'email_verified_at' => now(),
+            ],
+            [
+                'name'              => 'Ekoju',
+                'email'             => 'ekoju@establish.dev',
+                'password'          => $defaultPw,
+                'role'              => 'ka_sie',
+                'dept_id'           => $mtcIK?->id,
+                'section'           => 'Prod. Eng & Plant service',
+                'email_verified_at' => now(),
+            ],
+            [
+                'name'              => 'Priyanto',
+                'email'             => 'priyanto@establish.dev',
+                'password'          => $defaultPw,
+                'role'              => 'ka_sie',
+                'dept_id'           => $mfgIK?->id,
+                'section'           => 'quality control IKAR',
                 'email_verified_at' => now(),
             ],
             [
@@ -231,6 +286,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $mfgIK?->id,
+                'section'           => 'manufacturing admin',
                 'email_verified_at' => now(),
             ],
             [
@@ -239,6 +295,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $mfgIK?->id,
+                'section'           => 'Production',
                 'email_verified_at' => now(),
             ],
 
@@ -251,6 +308,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $acc?->id, // Moved from IARM to Finance Accounting
+                'section'           => 'GL & Tax',
                 'email_verified_at' => now(),
             ],
             [
@@ -259,6 +317,16 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $acc?->id, // Moved from IARM to Finance Accounting
+                'section'           => 'budget & Sistem informasi',
+                'email_verified_at' => now(),
+            ],
+            [
+                'name'              => 'Ade Saepudin',
+                'email'             => 'ade.saepudin@establish.dev',
+                'password'          => $defaultPw,
+                'role'              => 'ka_sie',
+                'dept_id'           => $acc?->id,
+                'section'           => 'billing',
                 'email_verified_at' => now(),
             ],
             [
@@ -267,6 +335,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $acc?->id, // Moved from IARM to Finance Accounting
+                'section'           => 'treasury & cost accounting',
                 'email_verified_at' => now(),
             ],
             [
@@ -275,14 +344,16 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $prc?->id, // Moved to Procurement
+                'section'           => 'procurement support',
                 'email_verified_at' => now(),
             ],
             [
-                'name'              => 'Bramansyah Haidar Islami',
-                'email'             => 'bramansyah.haidar@establish.dev',
+                'name'              => 'Bramansyah Badar Islami',
+                'email'             => 'bramansyah.badar@establish.dev',
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $prc?->id, // Moved to Procurement
+                'section'           => 'Purchasing & Import',
                 'email_verified_at' => now(),
             ],
             [
@@ -291,6 +362,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $hcgs?->id,
+                'section'           => 'human capital development',
                 'email_verified_at' => now(),
             ],
             [
@@ -299,6 +371,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $hcgs?->id,
+                'section'           => 'human capital operation',
                 'email_verified_at' => now(),
             ],
             [
@@ -307,6 +380,7 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $hcgs?->id,
+                'section'           => 'EHS & GA ops IBEK',
                 'email_verified_at' => now(),
             ],
             [
@@ -315,12 +389,13 @@ class UserSeeder extends Seeder
                 'password'          => $defaultPw,
                 'role'              => 'ka_sie',
                 'dept_id'           => $hcgs?->id,
+                'section'           => 'EA & GA ops IKAR',
                 'email_verified_at' => now(),
             ],
         ];
 
         foreach ($users as $userData) {
-            User::firstOrCreate(
+            User::updateOrCreate(
                 ['email' => $userData['email']],
                 $userData
             );

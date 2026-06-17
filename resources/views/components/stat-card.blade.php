@@ -66,7 +66,7 @@ $c = $colorMap[$color] ?? $colorMap['indigo'];
             <span class="text-xs font-medium text-slate-500 uppercase tracking-wide leading-tight">
                 {{ $title }}
             </span>
-            <span class="w-8 h-8 rounded-lg {{ $c['icon_bg'] }} flex items-center justify-center shrink-0">
+            <span class="w-12 h-12 rounded-xl {{ $c['icon_bg'] }} flex items-center justify-center shrink-0">
                 {{-- Icon slot --}}
                 <span class="{{ $c['icon_text'] }}">
                     {{ $slot }}

@@ -10,6 +10,7 @@ class BudgetLog extends Model
 {
     protected $fillable = [
         'dept_id',
+        'cost_center_id',
         'reference_no',
         'amount',
         'log_type',
@@ -33,6 +34,14 @@ class BudgetLog extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'dept_id');
+    }
+
+    /**
+     * Log terkait dengan satu cost center.
+     */
+    public function costCenter(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\CostCenter::class, 'cost_center_id');
     }
 
     // =========================================================
@@ -85,18 +94,20 @@ class BudgetLog extends Model
      * BudgetLog::record($deptId, $ph->ph_number, $ph->nominal_request, 'reserve', 'Hold PH disetujui Ka.Dept');
      */
     public static function record(
-        int    $deptId,
+        ?int   $deptId,
         string $referenceNo,
         float  $amount,
         string $logType,
-        string $description = ''
+        string $description = '',
+        ?int   $costCenterId = null
     ): static {
         return static::create([
-            'dept_id'      => $deptId,
-            'reference_no' => $referenceNo,
-            'amount'       => $amount,
-            'log_type'     => $logType,
-            'description'  => $description,
+            'dept_id'        => $deptId,
+            'cost_center_id' => $costCenterId,
+            'reference_no'   => $referenceNo,
+            'amount'         => $amount,
+            'log_type'       => $logType,
+            'description'    => $description,
         ]);
     }
 }

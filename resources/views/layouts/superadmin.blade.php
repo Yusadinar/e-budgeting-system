@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ config('app.name', 'E-Budgeting System') }} — @yield('title', 'Superadmin')</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}" />
 
     {{-- Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -13,6 +14,8 @@
 
     {{-- Tailwind v4 via CDN --}}
     <script src="https://cdn.tailwindcss.com"></script>
+    {{-- Alpine.js --}}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -164,6 +167,15 @@
                     Departemen
                 </a>
 
+                <a href="{{ route('superadmin.cost-centers.index') }}" onclick="closeSidebarMobile()"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-150
+                          {{ request()->routeIs('superadmin.cost-centers.*') ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/25' : 'text-violet-200/70 hover:text-white hover:bg-white/[0.07]' }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6z"/>
+                    </svg>
+                    Cost Center
+                </a>
+
                 <p class="px-3 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-widest text-violet-400/50">Monitoring</p>
 
                 <a href="{{ route('superadmin.budget.index') }}" onclick="closeSidebarMobile()"
@@ -230,7 +242,7 @@
                 </nav>
 
                 {{-- Real-time Clock --}}
-                <div class="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-slate-900/5 border border-slate-900/10 ml-auto sm:ml-3">
+                <div class="hidden sm:flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-slate-900/5 border border-slate-900/10 ml-auto sm:ml-3">
                     <svg class="w-3.5 h-3.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>

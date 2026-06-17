@@ -14,7 +14,7 @@ class DepartmentController extends Controller
     public function index(): View
     {
         $departments = Department::withCount('users')
-            ->with('currentBudget')
+            ->with(['currentBudget', 'costCenters.currentBudget'])
             ->orderBy('dept_name')
             ->get();
 

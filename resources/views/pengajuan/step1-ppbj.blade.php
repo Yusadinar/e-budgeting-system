@@ -6,11 +6,20 @@
 @push('styles')
 <style>
 @media print {
+    @page {
+        size: A4 portrait;
+        margin: 5mm;
+    }
+    body { 
+        background:#fff!important; 
+        zoom: 70%; 
+        -webkit-print-color-adjust: exact; 
+        print-color-adjust: exact; 
+    }
     #sidebar, #sidebar-overlay, header, footer, .no-print { display:none!important; }
     #main-content { margin:0!important; }
     main { padding:0!important; }
-    .paper { box-shadow:none!important; border:none!important; margin:0!important; max-width:100%!important; }
-    body { background:#fff!important; }
+    .paper { box-shadow:none!important; border:none!important; margin:0!important; max-width:100%!important; padding:0!important; }
 }
 .paper {
     background:#fff; max-width:900px; margin:0 auto;
@@ -71,9 +80,10 @@ select.cell-input { border:1px solid #e2e8f0; border-radius:3px; padding:4px 6px
 <div class="paper animate-page">
     {{-- Header --}}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <img src="{{ asset('images/ippi_logo.jpg') }}" alt="Logo" style="height:48px;">
+        <img src="{{ asset('images/ippi-logo.png') }}" alt="Logo" style="height:64px;">
         <div style="text-align:right;">
             <div style="font-size:10px;color:#64748b;">PT INTI PANTJA PRESS INDUSTRI</div>
+            <button type="button" onclick="fillDummyData()" class="no-print" style="margin-top:4px; padding:4px 8px; background:#fef08a; color:#854d0e; border:1px solid #fde047; border-radius:4px; font-size:10px; cursor:pointer; font-weight:bold;">⚡ Auto-Fill Testing</button>
         </div>
     </div>
     <div class="doc-title">PERMOHONAN PENGADAAN BARANG / JASA (PPBJ)</div>
@@ -173,7 +183,7 @@ select.cell-input { border:1px solid #e2e8f0; border-radius:3px; padding:4px 6px
         <div class="section-header">C. Condition, Specification & Urgency</div>
 
         {{-- (6) Condition Photo Kiri --}}
-        <div class="form-cell left" style="grid-row:span 3;">
+        <div class="form-cell left" style="grid-row:span 2;">
             <div class="cell-label">Condition (Sketch/Photo) <span class="req">*</span></div>
             <div class="drop-zone" id="condDrop" onclick="document.getElementById('condInput').click()">
                 <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"/></svg>
@@ -199,7 +209,7 @@ select.cell-input { border:1px solid #e2e8f0; border-radius:3px; padding:4px 6px
         </div>
 
         {{-- (8) Urgency Kanan --}}
-        <div class="form-cell right">
+        <div class="form-cell right" style="grid-row:span 2;">
             <div class="cell-label">Urgency</div>
             <div style="margin-bottom:6px;">
                 <label style="font-size:11px;font-weight:600;color:#6366f1;">a. Level:</label>
@@ -226,8 +236,8 @@ select.cell-input { border:1px solid #e2e8f0; border-radius:3px; padding:4px 6px
             </div>
         </div>
 
-        {{-- (9) Budget/Estimasi Kanan --}}
-        <div class="form-cell right">
+        {{-- (9) Budget/Estimasi Kiri --}}
+        <div class="form-cell left" style="display:flex; flex-direction:column; justify-content:center;">
             <div class="cell-label">Budget / Estimasi <span class="req">*</span></div>
             <div style="margin-bottom:8px;">
                 <label style="font-size:11px;font-weight:600;color:#6366f1;">Tipe Budget:</label>
@@ -285,19 +295,19 @@ select.cell-input { border:1px solid #e2e8f0; border-radius:3px; padding:4px 6px
     <table class="sign-table">
         <thead>
             <tr>
-                <th colspan="3" style="background:#eef2ff;color:#4f46e5;">Disetujui ***</th>
+                <th colspan="3" style="background:#eef2ff;color:#4f46e5;">Disetujui</th>
                 <th colspan="2" style="background:#f0fdf4;color:#16a34a;">Diperiksa</th>
                 <th style="background:#fefce8;color:#ca8a04;">Dibuat</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td style="font-size:10px;color:#64748b;">Kadiv Incharge</td>
-                <td style="font-size:10px;color:#64748b;">Direktur Incharge</td>
-                <td style="font-size:10px;color:#64748b;">Presdir</td>
-                <td style="font-size:10px;color:#64748b;">Ka.sie Purch</td>
-                <td style="font-size:10px;color:#64748b;">Ka.dept M Rajief</td>
-                <td style="font-size:10px;color:#64748b;">Ka Sie: Deddy S</td>
+                <td style="font-size:10px;color:#64748b;font-weight:600;">President Director</td>
+                <td style="font-size:10px;color:#64748b;font-weight:600;">Finance Director</td>
+                <td style="font-size:10px;color:#64748b;font-weight:600;">Ka. Div Finance</td>
+                <td style="font-size:10px;color:#64748b;font-weight:600;">Ka. Sie Purc.</td>
+                <td style="font-size:10px;color:#64748b;font-weight:600;">Ka. Dept Terkait</td>
+                <td style="font-size:10px;color:#64748b;font-weight:600;">{{ $user->role_label }}</td>
             </tr>
             <tr>
                 <td class="sign-box"></td>
@@ -306,6 +316,14 @@ select.cell-input { border:1px solid #e2e8f0; border-radius:3px; padding:4px 6px
                 <td class="sign-box"></td>
                 <td class="sign-box"></td>
                 <td class="sign-box"></td>
+            </tr>
+            <tr>
+                <td style="font-size:10px;color:#334155;">—</td>
+                <td style="font-size:10px;color:#334155;">—</td>
+                <td style="font-size:10px;color:#334155;">—</td>
+                <td style="font-size:10px;color:#334155;">Bramansyah B.I.</td>
+                <td style="font-size:10px;color:#334155;">—</td>
+                <td style="font-size:10px;color:#334155;">{{ $user->name }}</td>
             </tr>
         </tbody>
     </table>
@@ -314,8 +332,23 @@ select.cell-input { border:1px solid #e2e8f0; border-radius:3px; padding:4px 6px
         <strong>***</strong> ≤ 50jt: Kadiv &nbsp;|&nbsp; 50jt-100jt: s/d Direktur &nbsp;|&nbsp; > 100jt: s/d Presdir
     </div>
 
+    {{-- Signature Pad --}}
+    <div class="no-print" style="margin-top:24px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; padding:16px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:8px;">Tanda Tangan Digital Pengaju <span style="color:#ef4444">*</span></label>
+        <div style="position:relative; touch-action:none; background:#fff; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
+            <canvas id="signaturePad" width="460" height="160" style="width:100%; max-width:460px; height:160px; cursor:crosshair;"></canvas>
+            <button type="button" onclick="clearSignature()" style="position:absolute; top:8px; right:8px; font-size:10px; padding:4px 8px; border-radius:4px; border:none; background:#f1f5f9; color:#475569; cursor:pointer;">Hapus</button>
+        </div>
+        <p style="font-size:10px; color:#64748b; margin-top:4px;">Gambarkan tanda tangan Anda menggunakan mouse atau sentuhan.</p>
+        <input type="hidden" name="signature_data" id="signatureInput">
+    </div>
+
     {{-- Submit --}}
     <div class="no-print" style="display:flex;justify-content:center;gap:12px;margin-top:24px;">
+        <a href="{{ route('pengajuan.index') }}" class="btn-print" style="text-decoration:none; background:#fff; display:inline-flex; align-items:center;">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Kembali
+        </a>
         <button type="submit" class="btn-submit">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>
             Ajukan PPBJ
@@ -323,6 +356,75 @@ select.cell-input { border:1px solid #e2e8f0; border-radius:3px; padding:4px 6px
     </div>
 </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('signaturePad');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let lastX = 0, lastY = 0;
+
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        if (e.touches && e.touches.length > 0) {
+            return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+        }
+        return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    }
+
+    function startDraw(e) { 
+        e.preventDefault();
+        drawing = true; 
+        const pos = getPos(e); 
+        lastX = pos.x; lastY = pos.y; 
+    }
+    function draw(e) { 
+        if (!drawing) return; 
+        e.preventDefault();
+        const pos = getPos(e);
+        ctx.beginPath(); 
+        ctx.moveTo(lastX, lastY); 
+        ctx.lineTo(pos.x, pos.y);
+        ctx.strokeStyle = '#1e293b'; 
+        ctx.lineWidth = 2.5; 
+        ctx.lineCap = 'round'; 
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        lastX = pos.x; lastY = pos.y;
+    }
+    function stopDraw() { drawing = false; }
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseleave', stopDraw);
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stopDraw);
+
+    window.clearSignature = function() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    function isCanvasBlank() {
+        const blankCanvas = document.createElement('canvas');
+        blankCanvas.width = canvas.width;
+        blankCanvas.height = canvas.height;
+        return canvas.toDataURL() === blankCanvas.toDataURL();
+    }
+
+    document.getElementById('ppbjForm').addEventListener('submit', function(e) {
+        if (isCanvasBlank()) {
+            e.preventDefault();
+            alert('Harap bubuhkan tanda tangan digital Anda terlebih dahulu sebelum mengajukan PPBJ.');
+            return false;
+        }
+        document.getElementById('signatureInput').value = canvas.toDataURL('image/png');
+    });
+});
+</script>
 @endsection
 
 @push('scripts')
@@ -362,5 +464,64 @@ document.querySelectorAll('input[name="budget_type"]').forEach(r => {
         document.getElementById('capexUpload').style.display = r.value === 'capex' ? 'block' : 'none';
     });
 });
+
+function fillDummyData() {
+    // text/number/textarea
+    const fills = {
+        'subject': 'Pengadaan Mesin Kompresor Industri',
+        'ia_no': 'IA-2026/001',
+        'io_fr_no': 'IO-2026-991',
+        'nama_barang_jasa': 'Kompresor Angin 5HP',
+        'qty': '2',
+        'spesifikasi': 'Tekanan 10 bar, 3 phase, garansi 2 tahun.',
+        'pernah_order_bulan': 'Januari 2025',
+        'bg_what': 'Kompresor utama di line 1 rusak',
+        'bg_why': 'Usia mesin sudah lebih dari 10 tahun dan sering bocor',
+        'bg_when': 'Mulai bermasalah sejak bulan lalu',
+        'bg_where': 'Area produksi Pressline 1',
+        'bg_who': 'Operator line dan tim maintenance',
+        'bg_how': 'Perlu diganti segera agar produksi tidak terganggu',
+        'risk_analysis': 'Jika tidak diganti, line 1 akan sering mati dan output produksi turun 20%.',
+        'spec_brand': 'Hitachi',
+        'spec_maker': 'Hitachi',
+        'spec_negara_asal': 'Jepang',
+        'spec_lain_lain': 'Dilengkapi dengan auto-drain valve.',
+        'potensi_line_stop': 'Ya, 2 jam per hari',
+        'lokasi_pressline': 'Line 1A',
+        'lokasi_sub_assy': '-',
+        'lokasi_metal_finish': '-',
+        'lokasi_lain_lain': 'Ruang kompresor utama'
+    };
+
+    for(let k in fills) {
+        let el = document.querySelector(`[name="${k}"]`);
+        if(el) el.value = fills[k];
+    }
+
+    // selects
+    let dept = document.querySelector('[name="department_section"]');
+    if(dept && dept.options.length > 1) dept.selectedIndex = 1;
+    
+    let uom = document.querySelector('[name="uom"]');
+    if(uom) uom.value = 'unit';
+
+    // radios
+    let clickRadio = (name, val) => {
+        let el = document.querySelector(`[name="${name}"][value="${val}"]`);
+        if(el) { el.checked = true; el.dispatchEvent(new Event('change')); }
+    };
+    clickRadio('pernah_order', 'sudah');
+    clickRadio('urgency_level', 'high');
+    clickRadio('budget_type', 'expense');
+    clickRadio('budget_amount_range', '10m_to_50m');
+
+    // checkboxes
+    let check = document.querySelector('[name="urgency_options[]"][value="penggantian_rusak"]');
+    if(check) check.checked = true;
+    
+    document.getElementById('orderBulan').style.display = 'block';
+
+    alert("Data testing berhasil di-generate! (Silakan lampirkan gambar Condition Photo secara manual)");
+}
 </script>
 @endpush

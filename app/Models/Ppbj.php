@@ -96,6 +96,14 @@ class Ppbj extends Model
                     ->latestOfMany();
     }
 
+    /**
+     * Riwayat approval PPBJ (tanda tangan digital).
+     */
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(PpbjApproval::class, 'ppbj_id')->orderBy('step');
+    }
+
     // =========================================================
     // STATIC HELPER: Generate PPBJ Number
     // Format: XX/PROP/PURCH/MM/YYYY
@@ -107,21 +115,21 @@ class Ppbj extends Model
      */
     public static function generateNumber(): string
     {
-        $month = str_pad(now()->month, 2, '0', STR_PAD_LEFT);
+        $romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+        $monthRoman = $romans[now()->month - 1];
         $year  = now()->year;
 
-        $lastRecord = static::whereYear('created_at', $year)
-                            ->whereMonth('created_at', now()->month)
-                            ->orderBy('id', 'desc')
-                            ->first();
+        // Ambil record terakhir secara keseluruhan agar nomor terus berlanjut
+        $lastRecord = static::orderBy('id', 'desc')->first();
 
         $seq = 1;
         if ($lastRecord && preg_match('/^(\d+)\//', $lastRecord->ppbj_number, $matches)) {
             $seq = (int) $matches[1] + 1;
         }
 
-        $seqStr = str_pad($seq, 2, '0', STR_PAD_LEFT);
-        return "{$seqStr}/PROP/PURCH/{$month}/{$year}";
+        // Format 3 digit (contoh: 001, 002, ... 999)
+        $seqStr = str_pad($seq, 3, '0', STR_PAD_LEFT);
+        return "{$seqStr}/PROP/PURCH/{$monthRoman}/{$year}";
     }
 
     // =========================================================

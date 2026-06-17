@@ -26,7 +26,8 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('superadmin.users.update', $user) }}" class="space-y-5">
+        <form method="POST" action="{{ route('superadmin.users.update', $user) }}" class="space-y-5"
+              x-data="userEditData()">
             @csrf @method('PUT')
 
             {{-- Name --}}
@@ -46,25 +47,24 @@
             </div>
 
             {{-- Role & Department --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label for="role" class="block text-sm font-medium text-slate-700 mb-1.5">Role</label>
-                    <select name="role" id="role" required
+                    <select name="role" id="role" required x-model="role"
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 bg-white">
-                        @foreach($roles as $role)
-                            <option value="{{ $role }}" {{ old('role', $user->role) === $role ? 'selected' : '' }}>
-                                {{ match($role) {
+                        <option value="">Pilih Role</option>
+                        @foreach($roles as $r)
+                            <option value="{{ $r }}" {{ old('role', $user->role) === $r ? 'selected' : '' }}>
+                                {{ match($r) {
                                     'staff'       => 'Staff',
                                     'ka_sie'      => 'Ka. Seksi',
                                     'ka_dept'     => 'Ka. Departemen',
-                                    'ka_dept_acc' => 'Ka. Departemen (Acc)',
                                     'ka_div'      => 'Ka. Divisi',
-                                    'ka_div_acc'  => 'Ka. Divisi (Acc)',
-                                    'accounting'  => 'Accounting',
                                     'fin_dir'     => 'Fin. Director',
                                     'man_dir'     => 'Man. Director',
+                                    'prod_dir'    => 'Prod. Director',
                                     'pres_dir'    => 'Pres. Director',
-                                    default       => $role
+                                    default       => $r
                                 } }}
                             </option>
                         @endforeach
@@ -73,16 +73,46 @@
                 </div>
                 <div>
                     <label for="dept_id" class="block text-sm font-medium text-slate-700 mb-1.5">Departemen</label>
-                    <select name="dept_id" id="dept_id"
+                    <select name="dept_id" id="dept_id" x-model="dept"
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 bg-white">
                         <option value="">Tanpa Departemen</option>
-                        @foreach($departments as $dept)
-                            <option value="{{ $dept->id }}" {{ old('dept_id', $user->dept_id) == $dept->id ? 'selected' : '' }}>
-                                {{ $dept->dept_name }}
+                        @foreach($departments as $d)
+                            <option value="{{ $d->id }}" {{ old('dept_id', $user->dept_id) == $d->id ? 'selected' : '' }}>
+                                {{ $d->dept_name }}
                             </option>
                         @endforeach
                     </select>
                     @error('dept_id') <p class="text-xs text-rose-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div x-show="role === 'staff' || role === 'ka_sie'" x-cloak>
+                    <label for="section" class="block text-sm font-medium text-slate-700 mb-1.5">Seksi <span class="text-rose-500">*</span></label>
+                    
+                    <template x-if="role === 'staff'">
+                        <select name="section" id="section_select" :required="role === 'staff'" x-model="oldSection"
+                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 bg-white">
+                            <option value="">Pilih Seksi</option>
+                            <template x-for="sec in availableSections()" :key="sec">
+                                <option :value="sec" x-text="sec"></option>
+                            </template>
+                        </select>
+                    </template>
+                    
+                    <template x-if="role === 'ka_sie'">
+                        <input type="text" name="section" id="section_input" x-model="oldSection" :required="role === 'ka_sie'"
+                               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+                               placeholder="Input nama seksi">
+                    </template>
+                    
+                    <p x-show="role === 'staff' && availableSections().length === 0 && dept" class="text-xs text-amber-500 mt-1">Belum ada seksi di departemen ini (Buat akun Ka. Seksi dulu).</p>
+                    @error('section') <p class="text-xs text-rose-500 mt-1">{{ $message }}</p> @enderror
+                    
+                    <div class="mt-4 p-2 bg-gray-100 text-xs text-red-500 font-mono hidden">
+                        DEBUG INFO: <br>
+                        Role: <span x-text="role"></span><br>
+                        Dept: <span x-text="dept"></span><br>
+                        SectionsData: <span x-text="JSON.stringify(sectionsData)"></span><br>
+                        AvailableSections: <span x-text="JSON.stringify(availableSections())"></span>
+                    </div>
                 </div>
             </div>
 
@@ -119,4 +149,20 @@
     </div>
 </div>
 
+<script>
+function userEditData() {
+    return {
+        role: @json(old('role', $user->role)),
+        dept: @json((string) old('dept_id', $user->dept_id)),
+        oldSection: @json(old('section', $user->section)),
+        sectionsData: @json($sectionsByDept ?? []),
+        availableSections() {
+            if (!this.dept || typeof this.sectionsData !== 'object' || !this.sectionsData[this.dept]) {
+                return [];
+            }
+            return this.sectionsData[this.dept];
+        }
+    }
+}
+</script>
 @endsection

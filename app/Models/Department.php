@@ -27,6 +27,14 @@ class Department extends Model
     }
 
     /**
+     * Satu department memiliki banyak cost centers.
+     */
+    public function costCenters(): HasMany
+    {
+        return $this->hasMany(CostCenter::class, 'dept_id');
+    }
+
+    /**
      * Satu department memiliki satu annual budget per tahun.
      * Gunakan ->ofYear($year) untuk filter tahun tertentu.
      */
@@ -52,18 +60,41 @@ class Department extends Model
         return $this->hasMany(BudgetLog::class, 'dept_id');
     }
 
-    // =========================================================
-    // ACCESSOR / HELPER
-    // =========================================================
+    /**
+     * Aggregated Budget (Department Global + all Cost Centers under this department)
+     */
+    public function getTotalPlanAttribute(): float
+    {
+        $deptPlan = $this->currentBudget ? $this->currentBudget->total_plan : 0;
+        $ccPlan = $this->costCenters->reduce(function ($carry, $cc) {
+            return $carry + ($cc->currentBudget ? $cc->currentBudget->total_plan : 0);
+        }, 0);
+        return $deptPlan + $ccPlan;
+    }
+
+    public function getTotalUsedAttribute(): float
+    {
+        $deptUsed = $this->currentBudget ? $this->currentBudget->total_used : 0;
+        $ccUsed = $this->costCenters->reduce(function ($carry, $cc) {
+            return $carry + ($cc->currentBudget ? $cc->currentBudget->total_used : 0);
+        }, 0);
+        return $deptUsed + $ccUsed;
+    }
+
+    public function getTotalReservedAttribute(): float
+    {
+        $deptReserved = $this->currentBudget ? $this->currentBudget->total_reserved : 0;
+        $ccReserved = $this->costCenters->reduce(function ($carry, $cc) {
+            return $carry + ($cc->currentBudget ? $cc->currentBudget->total_reserved : 0);
+        }, 0);
+        return $deptReserved + $ccReserved;
+    }
 
     /**
      * Hitung sisa pagu anggaran aktif (total_plan - total_used - total_reserved).
      */
     public function getRemainingBudgetAttribute(): float
     {
-        $budget = $this->currentBudget;
-        if (! $budget) return 0;
-
-        return $budget->total_plan - $budget->total_used - $budget->total_reserved;
+        return $this->total_plan - $this->total_used - $this->total_reserved;
     }
 }

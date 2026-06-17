@@ -35,15 +35,11 @@ class DashboardController extends Controller
         $totalPengajuanApproved = ProposalHarga::where('status', 'Approved')->count();
         $totalPengajuanRejected = ProposalHarga::where('status', 'Rejected')->count();
 
-        // ── IA: menunggu approval direktur ───────────────────
-        $pendingApprovalDir = InternalAgreement::where('status_ia', 'In_Review')
-            ->when($user->isManDir(), fn($q) => $q->where('approval_step', 6))
-            ->when($user->isFinDir(), fn($q) => $q->where('approval_step', 5))
-            ->when($user->isPresDir(), fn($q) => $q->where('approval_step', 7))
-            ->count();
+        // ── Tugas yang menunggu approval direktur (PPBJ, PH, IA) ──────
+        $pendingApprovalDir = $user->getPendingActionPpbjIds()->count();
 
         // ── Budget per Departemen (bar chart) ────────────────
-        $deptBudgets = Department::with(['currentBudget'])->get()
+        $deptBudgets = Department::with(['currentBudget', 'costCenters.currentBudget'])->get()
             ->map(function ($dept) {
                 // Shorten name mapping
                 $shortName = match($dept->dept_name) {
@@ -65,9 +61,9 @@ class DashboardController extends Controller
                     'name'       => $dept->dept_name,
                     'short_name' => $shortName,
                     'code'       => $dept->budget_code,
-                    'plan'       => (float)($dept->currentBudget?->total_plan ?? 0),
-                    'used'       => (float)($dept->currentBudget?->total_used ?? 0),
-                    'reserved'   => (float)($dept->currentBudget?->total_reserved ?? 0),
+                    'plan'       => (float)($dept->total_plan),
+                    'used'       => (float)($dept->total_used),
+                    'reserved'   => (float)($dept->total_reserved),
                 ];
             })
             ->filter(fn($d) => $d['plan'] > 0)
@@ -86,8 +82,13 @@ class DashboardController extends Controller
 
         $labels = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
         $dataRealisasi = [];
+        $currentMonth = now()->month;
         for ($m = 1; $m <= 12; $m++) {
-            $dataRealisasi[] = (float)($realisasiBulanan[$m] ?? 0);
+            if ($m <= $currentMonth) {
+                $dataRealisasi[] = (float)($realisasiBulanan[$m] ?? 0);
+            } else {
+                $dataRealisasi[] = null;
+            }
         }
 
         // ── Departemen utilisasi tinggi (>= 75%) ─────────────
@@ -96,12 +97,35 @@ class DashboardController extends Controller
         )->sortByDesc(fn($d) => $d['used'] / $d['plan'])->values();
 
         // ── Aktivitas IA terbaru yang perlu di-approve ────────
-        $pendingIaList = InternalAgreement::with(['proposalHarga.ppbj.user.department'])
-            ->where('status_ia', 'In_Review')
-            ->when($user->isManDir(), fn($q) => $q->where('approval_step', 6))
-            ->when($user->isFinDir(), fn($q) => $q->where('approval_step', 5))
-            ->when($user->isPresDir(), fn($q) => $q->where('approval_step', 7))
-            ->orderByDesc('updated_at')
+        // ── Budget per Cost Center ───────────────────────────
+        $costCenterBudgets = \App\Models\CostCenter::with(['currentBudget', 'department'])
+            ->get()
+            ->map(function ($cc) {
+                $plan = (float)($cc->currentBudget?->total_plan ?? 0);
+                $used = (float)($cc->currentBudget?->total_used ?? 0);
+                $reserved = (float)($cc->currentBudget?->total_reserved ?? 0);
+                $sisa = $plan - $used - $reserved;
+                $utilization = $plan > 0 ? round(($used / $plan) * 100, 1) : 0;
+
+                return [
+                    'id' => $cc->id,
+                    'code' => $cc->cost_center_code,
+                    'name' => $cc->cost_center_name,
+                    'dept_name' => $cc->department?->dept_name ?? '-',
+                    'plan' => $plan,
+                    'used' => $used,
+                    'reserved' => $reserved,
+                    'sisa' => $sisa,
+                    'utilization' => $utilization,
+                ];
+            })
+            ->filter(fn($d) => $d['plan'] > 0)
+            ->sortByDesc('utilization')
+            ->values();
+
+        $pendingList = \App\Models\Ppbj::with(['user.department', 'latestProposalHarga.internalAgreement'])
+            ->whereIn('id', $user->getPendingActionPpbjIds())
+            ->latest()
             ->take(8)
             ->get();
 
@@ -125,7 +149,8 @@ class DashboardController extends Controller
             'labels',
             'dataRealisasi',
             'highUtilDepts',
-            'pendingIaList',
+            'pendingList',
+            'costCenterBudgets',
         ));
     }
 }

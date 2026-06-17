@@ -16,24 +16,39 @@ class BudgetOverviewController extends Controller
     {
         $year = $request->input('year', now()->year);
 
-        $departments = Department::with(['annualBudgets' => function ($q) use ($year) {
-                $q->where('fiscal_year', $year);
-            }])
+        $departments = Department::with([
+                'annualBudgets' => fn ($q) => $q->where('fiscal_year', $year),
+                'costCenters.annualBudgets' => fn ($q) => $q->where('fiscal_year', $year)
+            ])
             ->withCount('users')
             ->orderBy('dept_name')
             ->get()
             ->map(function ($dept) {
                 $budget = $dept->annualBudgets->first();
+                $deptPlan = $budget ? $budget->total_plan : 0;
+                $deptUsed = $budget ? $budget->total_used : 0;
+                $deptReserved = $budget ? $budget->total_reserved : 0;
+
+                $ccPlan = $dept->costCenters->reduce(fn($c, $cc) => $c + ($cc->annualBudgets->first() ? $cc->annualBudgets->first()->total_plan : 0), 0);
+                $ccUsed = $dept->costCenters->reduce(fn($c, $cc) => $c + ($cc->annualBudgets->first() ? $cc->annualBudgets->first()->total_used : 0), 0);
+                $ccReserved = $dept->costCenters->reduce(fn($c, $cc) => $c + ($cc->annualBudgets->first() ? $cc->annualBudgets->first()->total_reserved : 0), 0);
+
+                $totalPlan = $deptPlan + $ccPlan;
+                $totalUsed = $deptUsed + $ccUsed;
+                $totalReserved = $deptReserved + $ccReserved;
+                $remaining = $totalPlan - $totalUsed - $totalReserved;
+                $utilization = $totalPlan > 0 ? round(($totalUsed / $totalPlan) * 100, 1) : 0;
+
                 return [
                     'id'           => $dept->id,
                     'name'         => $dept->dept_name,
                     'budget_code'  => $dept->budget_code,
                     'users_count'  => $dept->users_count,
-                    'total_plan'   => (float) ($budget?->total_plan ?? 0),
-                    'total_used'   => (float) ($budget?->total_used ?? 0),
-                    'total_reserved' => (float) ($budget?->total_reserved ?? 0),
-                    'remaining'    => (float) ($budget?->remaining ?? 0),
-                    'utilization'  => (float) ($budget?->utilization_percent ?? 0),
+                    'total_plan'   => (float) $totalPlan,
+                    'total_used'   => (float) $totalUsed,
+                    'total_reserved' => (float) $totalReserved,
+                    'remaining'    => (float) $remaining,
+                    'utilization'  => (float) $utilization,
                 ];
             });
 
@@ -50,9 +65,25 @@ class BudgetOverviewController extends Controller
     {
         $year = $request->input('year', now()->year);
 
-        $budget = $department->annualBudgets()
+        $deptBudget = $department->annualBudgets()->where('fiscal_year', $year)->first();
+        
+        $costCenterBudgets = \App\Models\AnnualBudget::whereIn('cost_center_id', $department->costCenters()->pluck('id'))
             ->where('fiscal_year', $year)
-            ->first();
+            ->get();
+
+        $totalPlan = ($deptBudget ? $deptBudget->total_plan : 0) + $costCenterBudgets->sum('total_plan');
+        $totalUsed = ($deptBudget ? $deptBudget->total_used : 0) + $costCenterBudgets->sum('total_used');
+        $totalReserved = ($deptBudget ? $deptBudget->total_reserved : 0) + $costCenterBudgets->sum('total_reserved');
+
+        $budget = null;
+        if ($totalPlan > 0 || $deptBudget || $costCenterBudgets->count() > 0) {
+            $budget = (object) [
+                'total_plan' => $totalPlan,
+                'total_used' => $totalUsed,
+                'total_reserved' => $totalReserved,
+                'remaining' => $totalPlan - $totalUsed - $totalReserved,
+            ];
+        }
 
         // Realisasi per bulan
         $realisasiBulanan = InternalAgreement::whereHas('proposalHarga.ppbj.user', function ($q) use ($department) {

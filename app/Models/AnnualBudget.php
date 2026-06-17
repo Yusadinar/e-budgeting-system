@@ -5,11 +5,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AnnualBudget extends Model
 {
     protected $fillable = [
         'dept_id',
+        'cost_center_id',
         'fiscal_year',
         'total_plan',
         'total_used',
@@ -35,6 +37,14 @@ class AnnualBudget extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'dept_id');
+    }
+
+    /**
+     * Annual budget dimiliki oleh satu cost center.
+     */
+    public function costCenter(): BelongsTo
+    {
+        return $this->belongsTo(CostCenter::class, 'cost_center_id');
     }
 
     // =========================================================

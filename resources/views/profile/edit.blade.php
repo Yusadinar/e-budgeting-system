@@ -8,7 +8,7 @@
 
     {{-- Back Button --}}
     <div>
-        <a href="{{ Auth::user()->isSuperAdmin() ? route('superadmin.dashboard') : (Auth::user()->role === 'man_dir' || Auth::user()->role === 'fin_dir' || Auth::user()->role === 'pres_dir' ? route('director.dashboard') : route('dashboard')) }}" 
+        <a href="{{ Auth::user()->isSuperAdmin() ? route('superadmin.dashboard') : (Auth::user()->isDirector() ? route('director.dashboard') : route('dashboard')) }}" 
            class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors group">
             <div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center group-hover:border-slate-300 shadow-sm transition-all">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

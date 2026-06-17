@@ -4,6 +4,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnnualBudget;
+use App\Models\CostCenter;
 use App\Models\InternalAgreement;
 use App\Models\ProposalHarga;
 use Illuminate\Http\Request;
@@ -26,35 +27,45 @@ class DashboardController extends Controller
         }
 
         $department = $user->department;
+        $userCostCenter = $user->costCenter;
 
         // ── Ambil budget aktif tahun ini ──────────────────────────
-        $budget = AnnualBudget::where('dept_id', $department?->id)
-            ->where('fiscal_year', now()->year)
-            ->first();
-
-        $sisaPagu          = $budget ? $budget->remaining         : 0;
-        $totalReserved     = $budget ? $budget->total_reserved     : 0;
-        $totalUsed         = $budget ? $budget->total_used         : 0;
-        $totalPlan         = $budget ? $budget->total_plan         : 0;
+        // Prioritas: cost_center_id > dept_id
+        $budget = null;
+        if ($user->cost_center_id) {
+            $budget = AnnualBudget::where('cost_center_id', $user->cost_center_id)
+                ->where('fiscal_year', now()->year)
+                ->first();
+            $sisaPagu          = $budget ? $budget->remaining         : 0;
+            $totalReserved     = $budget ? $budget->total_reserved     : 0;
+            $totalUsed         = $budget ? $budget->total_used         : 0;
+            $totalPlan         = $budget ? $budget->total_plan         : 0;
+        } else {
+            // Jika tidak ada cost center, gunakan aggregated budget dari departemen
+            $sisaPagu          = $department ? $department->remaining_budget : 0;
+            $totalReserved     = $department ? $department->total_reserved : 0;
+            $totalUsed         = $department ? $department->total_used : 0;
+            $totalPlan         = $department ? $department->total_plan : 0;
+        }
 
         // ── Summary Cards ─────────────────────────────────────────
         // 1. PH yang belum Approved
-        $phBelumApproved = ProposalHarga::whereHas('ppbj', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+        $phBelumApproved = ProposalHarga::whereHas('ppbj.user', function ($q) use ($department) {
+                $q->where('dept_id', $department?->id);
             })
             ->whereIn('status', ['Draft', 'In_Review'])
             ->sum('nominal_request');
 
         // 2. IA yang belum Approved
-        $iaBelumApproved = InternalAgreement::whereHas('proposalHarga.ppbj', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+        $iaBelumApproved = InternalAgreement::whereHas('proposalHarga.ppbj.user', function ($q) use ($department) {
+                $q->where('dept_id', $department?->id);
             })
             ->whereIn('status_ia', ['Draft', 'In_Review'])
             ->sum('final_nominal');
 
         // 3. PH yang sudah Approved TAPI belum punya IA sama sekali
-        $phTanpaIa = ProposalHarga::whereHas('ppbj', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+        $phTanpaIa = ProposalHarga::whereHas('ppbj.user', function ($q) use ($department) {
+                $q->where('dept_id', $department?->id);
             })
             ->where('status', 'Approved')
             ->whereDoesntHave('internalAgreement')
@@ -64,19 +75,19 @@ class DashboardController extends Controller
         $totalPengajuanBerjalan = $phBelumApproved + $iaBelumApproved + $phTanpaIa;
 
         // Total pengajuan selesai (IA yang sudah Approved)
-        $totalPengajuanSelesai = InternalAgreement::whereHas('proposalHarga.ppbj', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+        $totalPengajuanSelesai = InternalAgreement::whereHas('proposalHarga.ppbj.user', function ($q) use ($department) {
+                $q->where('dept_id', $department?->id);
             })
             ->where('status_ia', 'Approved')
             ->sum('final_nominal');
 
-        // ── Data Grafik per Bulan (Rencana vs Realisasi) ─────────
-        // Rencana: distribusi rata pagu per bulan
-        $rencanaPerBulan = $totalPlan > 0
-            ? round($totalPlan / 12, 2)
-            : 0;
-
-        // Realisasi: IA Approved per bulan di tahun ini
+        // Susun array 12 bulan (1-12)
+        $labels        = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        
+        // Rencana: tampilkan nilai pagu awal secara utuh sebagai garis target
+        $dataRencana   = array_fill(0, 12, $totalPlan);
+        
+        // Realisasi: ambil dari IA Approved per bulan di tahun ini
         $realisasiQuery = InternalAgreement::where('status_ia', 'Approved')
             ->whereYear('updated_at', now()->year);
 
@@ -91,106 +102,53 @@ class DashboardController extends Controller
             ->groupBy('bulan')
             ->pluck('total', 'bulan');
 
-        // Susun array 12 bulan (1-12), isi 0 jika tidak ada realisasi
-        $labels      = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-        $dataRencana = array_fill(0, 12, $rencanaPerBulan);
+        // Realisasi: dibuat kumulatif (YTD) untuk melihat progres penyerapan anggaran terhadap pagu
         $dataRealisasi = [];
+        $cumulative    = 0;
+        $currentMonth  = now()->month;
         for ($m = 1; $m <= 12; $m++) {
-            $dataRealisasi[] = (float) ($realisasiRaw[$m] ?? 0);
+            if ($m <= $currentMonth) {
+                $cumulative += (float) ($realisasiRaw[$m] ?? 0);
+                $dataRealisasi[] = $cumulative;
+            } else {
+                $dataRealisasi[] = null;
+            }
         }
 
-        // ── Pending Reviews Notification (Khusus Approver) ────────
-        $pendingReviews = 0;
-        if ($user->canApprove()) {
-            $role = $user->role;
-            $deptId = $user->dept_id;
+        // ── Pending Reviews Notification (Khusus Approver & Pembuat Dokumen) ────────
+        $pendingReviews = $user->getPendingActionPpbjIds()->count();
 
-            // PPBJ Pending
-            $ppbjQuery = \App\Models\Ppbj::where('status', 'In_Review')
-                ->where(function($q) use ($user, $deptId) {
-                    if ($user->isKaDept()) {
-                        $q->orWhere(function($q1) use ($deptId) {
-                            $q1->where('approval_step', 1)->whereHas('user', fn($q2) => $q2->where('dept_id', $deptId));
-                        });
-                    }
-                    if ($user->isKaDiv()) {
-                        $q->orWhere('approval_step', 2);
-                    }
-                    if ($user->isAccounting()) {
-                        $q->orWhere('approval_step', 3);
-                    }
-                    // Jika direktur atau role lain yang canApprove tapi tidak ada di step PPBJ, biarkan kosong
-                    if (!$user->isKaDept() && !$user->isKaDiv() && !$user->isAccounting()) {
-                        $q->where('id', 0);
-                    }
-                });
-            $pendingReviews += $ppbjQuery->count();
-
-            // PH Pending
-            $phQuery = \App\Models\ProposalHarga::where('status', 'In_Review')
-                ->where(function($q) use ($user, $deptId) {
-                    if ($user->isKaDept()) {
-                        $q->orWhere(function($q1) use ($deptId) {
-                            $q1->where('approval_step', 1)->whereHas('ppbj.user', fn($q2) => $q2->where('dept_id', $deptId));
-                        });
-                    }
-                    if ($user->isKaDiv()) {
-                        $q->orWhere('approval_step', 2);
-                    }
-                    if ($user->isAccounting()) {
-                        $q->orWhere('approval_step', 3);
-                    }
-                    if (!$user->isKaDept() && !$user->isKaDiv() && !$user->isAccounting()) {
-                        $q->where('id', 0);
-                    }
-                });
-            $pendingReviews += $phQuery->count();
-
-            // IA Pending
-            $iaQuery = \App\Models\InternalAgreement::where('status_ia', 'In_Review')
-                ->where(function($q) use ($user, $deptId) {
-                    if ($user->isKaDept()) {
-                        $q->orWhere(function($q1) use ($deptId) {
-                            $q1->where('approval_step', 1)->whereHas('proposalHarga.ppbj.user', fn($q2) => $q2->where('dept_id', $deptId));
-                        });
-                    }
-                    if ($user->isKaDiv()) {
-                        $q->orWhere('approval_step', 2);
-                    }
-                    if ($user->isKaDeptAcc()) {
-                        $q->orWhere('approval_step', 3);
-                    }
-                    if ($user->isKaDivAcc()) {
-                        $q->orWhere('approval_step', 4);
-                    }
-                    if ($user->isFinDir()) {
-                        $q->orWhere('approval_step', 5);
-                    }
-                    if ($user->isManDir()) {
-                        $q->orWhere('approval_step', 6);
-                    }
-                    if ($user->isPresDir()) {
-                        $q->orWhere('approval_step', 7);
-                    }
-                    if (!$user->canApprove()) {
-                        $q->where('id', 0);
-                    }
-                });
-            $pendingReviews += $iaQuery->count();
+        // ── Riwayat Transaksi Anggaran (Budget Logs) ───────────────
+        $recentBudgetLogsQuery = \App\Models\BudgetLog::query();
+        if ($user->cost_center_id) {
+            $recentBudgetLogsQuery->where('cost_center_id', $user->cost_center_id);
+        } else if ($department) {
+            $costCenterIds = $department->costCenters()->pluck('id')->toArray();
+            $recentBudgetLogsQuery->where(function($q) use ($department, $costCenterIds) {
+                $q->where('dept_id', $department->id)
+                  ->orWhereIn('cost_center_id', $costCenterIds);
+            });
         }
+        
+        $recentBudgetLogs = $recentBudgetLogsQuery->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
 
         return view('dashboard', compact(
             'user',
             'department',
+            'userCostCenter',
             'sisaPagu',
             'totalReserved',
+            'totalUsed',
             'totalPlan',
             'totalPengajuanBerjalan',
             'totalPengajuanSelesai',
             'labels',
             'dataRencana',
             'dataRealisasi',
-            'pendingReviews'
+            'pendingReviews',
+            'recentBudgetLogs'
         ));
     }
 }

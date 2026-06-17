@@ -103,12 +103,12 @@ class InternalAgreement extends Model
      */
     public static function generateNumber(): string
     {
-        $month = now()->locale('id')->isoFormat('MMM');
+        $romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+        $monthRoman = $romans[now()->month - 1];
         $year  = now()->year;
         
+        // Ambil record terakhir secara keseluruhan agar nomor terus berlanjut
         $lastRecord = static::withTrashed()
-                            ->whereYear('created_at', $year)
-                            ->whereMonth('created_at', now()->month)
                             ->orderBy('id', 'desc')
                             ->first();
 
@@ -118,6 +118,11 @@ class InternalAgreement extends Model
         }
 
         $seqStr = str_pad($seq, 3, '0', STR_PAD_LEFT);
-        return "{$seqStr}/IA/IPPI/{$month}/{$year}";
+        return "{$seqStr}/IA/IPPI/{$monthRoman}/{$year}";
+    }
+
+    public function approvals()
+    {
+        return $this->hasMany(IaApproval::class, 'ia_id')->orderBy('step', 'asc');
     }
 }

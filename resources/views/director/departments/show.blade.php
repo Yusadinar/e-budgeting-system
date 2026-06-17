@@ -211,19 +211,26 @@
                             Rp {{ number_format($ph->internalAgreement?->final_nominal ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="py-3 px-4 text-center">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold
-                                {{ match($ph->status) {
-                                    'Approved'  => 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-                                    'Rejected'  => 'bg-rose-50 text-rose-700 border border-rose-200',
-                                    'In_Review' => 'bg-amber-50 text-amber-700 border border-amber-200',
-                                    default     => 'bg-slate-50 text-slate-600 border border-slate-200',
-                                } }}">
-                                {{ match($ph->status) {
-                                    'Approved'  => 'Disetujui',
-                                    'Rejected'  => 'Ditolak',
-                                    'In_Review' => 'Proses',
-                                    default     => $ph->status,
-                                } }}
+                            @php
+                                $finalStatus = 'Proses';
+                                $colorClass = 'bg-amber-50 text-amber-700 border border-amber-200';
+                                
+                                if ($ph->status === 'Rejected' || ($ph->internalAgreement && $ph->internalAgreement->status_ia === 'Rejected')) {
+                                    $finalStatus = 'Ditolak';
+                                    $colorClass = 'bg-rose-50 text-rose-700 border border-rose-200';
+                                } elseif ($ph->status === 'Approved' && $ph->internalAgreement && $ph->internalAgreement->status_ia === 'Approved') {
+                                    $finalStatus = 'Disetujui';
+                                    $colorClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+                                } elseif ($ph->status === 'Approved' && !$ph->internalAgreement) {
+                                    $finalStatus = 'Proses (Menunggu IA)';
+                                    $colorClass = 'bg-amber-50 text-amber-700 border border-amber-200';
+                                } else {
+                                    $finalStatus = 'Proses';
+                                    $colorClass = 'bg-amber-50 text-amber-700 border border-amber-200';
+                                }
+                            @endphp
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $colorClass }}">
+                                {{ $finalStatus }}
                             </span>
                         </td>
                         <td class="py-3 px-4">
@@ -250,6 +257,57 @@
         @endif
     </div>
 
+</div>
+
+{{-- Detail Budget Cost Center --}}
+<div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-card mb-5 animate-page-delay-3">
+    <div class="mb-4">
+        <h3 class="text-sm font-semibold text-slate-800">Detail Anggaran per Cost Center</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Monitoring serapan budget hingga level operasional terkecil (FY{{ $year }})</p>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-slate-50/60 border-b border-slate-100">
+                    <th class="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Cost Center</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Pagu</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Terpakai</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Sisa</th>
+                    <th class="text-center py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider" style="min-width: 120px">Utilisasi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                @forelse($costCenterBudgets as $cc)
+                <tr class="hover:bg-indigo-50/30 transition-colors">
+                    <td class="py-3 px-4">
+                        <div class="font-medium text-slate-800">{{ $cc['name'] }}</div>
+                        <div class="text-[10px] text-slate-400 font-mono mt-0.5">{{ $cc['code'] ?: 'N/A' }}</div>
+                    </td>
+                    <td class="py-3 px-4 text-right text-slate-700">Rp {{ number_format($cc['plan'] / 1000000, 0, ',', '.') }} Jt</td>
+                    <td class="py-3 px-4 text-right text-indigo-600 font-medium">Rp {{ number_format($cc['used'] / 1000000, 0, ',', '.') }} Jt</td>
+                    <td class="py-3 px-4 text-right {{ $cc['sisa'] < 0 ? 'text-rose-600' : 'text-emerald-600' }} font-medium">Rp {{ number_format($cc['sisa'] / 1000000, 0, ',', '.') }} Jt</td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-700
+                                     {{ $cc['utilization'] >= 90 ? 'bg-rose-500' : ($cc['utilization'] >= 75 ? 'bg-amber-500' : 'bg-indigo-500') }}"
+                                     style="width: {{ min($cc['utilization'], 100) }}%"></div>
+                            </div>
+                            <span class="text-[10px] font-semibold w-8 text-right
+                                {{ $cc['utilization'] >= 90 ? 'text-rose-600' : ($cc['utilization'] >= 75 ? 'text-amber-600' : 'text-indigo-600') }}">
+                                {{ $cc['utilization'] }}%
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="5" class="py-8 text-center text-slate-400 text-sm">Data detail cost center belum tersedia.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 
 {{-- Budget Logs / Audit Trail --}}

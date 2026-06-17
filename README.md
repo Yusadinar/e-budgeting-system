@@ -4,14 +4,15 @@ E-Budgeting System adalah aplikasi berbasis web yang dibangun menggunakan **Lara
 
 ## 🌟 Fitur Utama
 
-- **Role-Based Access Control (RBAC):** Akses sistem dibagi berdasarkan peran (Superadmin, Director, Kepala Departemen, Kepala Divisi, Accounting, Staff, dll).
+- **Role-Based Access Control (RBAC):** Akses sistem dibagi berdasarkan peran (Superadmin, Managing Director, Finance Director, Production Director, Kepala Departemen, Kepala Divisi, Accounting, Staff, dll).
 - **Alur Persetujuan Bertingkat:** 
   1. Permintaan Pengadaan Barang/Jasa (PPBJ)
   2. Proposal Harga (PH)
   3. Internal Agreement (IA)
-- **Monitoring Real-time:** Dashboard khusus untuk memonitor status pengajuan dan sisa pagu anggaran (budget) masing-masing departemen.
-- **Export/Cetak Dokumen:** Fitur untuk mengunduh dokumen pengajuan dalam format PDF dan upload template Excel.
-- **Keamanan & Validasi:** Validasi ketat terhadap nominal anggaran agar tidak melebihi sisa pagu, serta pembatasan hak akses (approval) antar departemen.
+- **Monitoring Real-time & Audit Trail:** Dashboard khusus untuk memonitor status pengajuan, sisa pagu anggaran (budget), serta **Budget Logs** untuk melacak riwayat pemakaian dan perilisan anggaran secara transparan.
+- **Manajemen Cost Center:** Sistem terintegrasi dengan *Cost Center* untuk memastikan alokasi dana dan pelaporan beban biaya akurat sesuai departemen.
+- **Export/Cetak Dokumen:** Fitur untuk mencetak/mengunduh dokumen pengajuan (termasuk Internal Agreement/IA) dalam bentuk PDF dan fitur upload template Excel.
+- **Keamanan & Validasi:** Validasi ketat terhadap nominal anggaran agar tidak melebihi sisa pagu (fitur reserved budget), serta pembatasan hak akses (approval) antar departemen.
 - **Automated Testing:** Terintegrasi dengan TestSprite untuk pengujian otomatis (Frontend & Backend).
 
 ## 🚀 Teknologi yang Digunakan

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ config('app.name', 'E-Budgeting System') }} — @yield('title', 'Dashboard')</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}" />
 
     {{-- Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -122,7 +123,7 @@
                         'ka_dept', 'ka_dept_acc'          => 'bg-sky-500/20 text-sky-300',
                         'ka_sie'                          => 'bg-teal-500/20 text-teal-300',
                         'accounting'                      => 'bg-emerald-500/20 text-emerald-300',
-                        'fin_dir', 'man_dir', 'pres_dir'  => 'bg-amber-500/20 text-amber-300',
+                        'fin_dir', 'man_dir', 'prod_dir', 'pres_dir'  => 'bg-amber-500/20 text-amber-300',
                         'superadmin'                      => 'bg-violet-500/20 text-violet-300',
                         default                           => 'bg-slate-500/20 text-slate-400',
                     } }}">
@@ -136,6 +137,7 @@
                         'ka_div_acc'  => 'Ka. Div Accounting',
                         'fin_dir'     => 'Finance Director',
                         'man_dir'     => 'Manufacture Director',
+                        'prod_dir'    => 'Production Director',
                         'pres_dir'    => 'President Director',
                         'superadmin'  => 'Superadmin',
                         default       => 'Unknown Role',
@@ -255,7 +257,7 @@
                 </nav>
 
                 {{-- Real-time Clock --}}
-                <div class="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 ml-auto sm:ml-3">
+                <div class="hidden sm:flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 ml-auto sm:ml-3">
                     <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>

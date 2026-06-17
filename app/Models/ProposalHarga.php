@@ -5,6 +5,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
@@ -17,12 +18,28 @@ class ProposalHarga extends Model
 
     protected $fillable = [
         'ppbj_id',
+        'cost_center_id',
         'ph_number',
         'subject',
         'nominal_request',
         'qr_token',
         'approval_step',
         'status',
+        'type',
+        'department_name',
+        'section_name',
+        'cost_center',
+        'no_io_asset',
+        'items_data',
+        'delivery_time',
+        'quality',
+        'payment_terms',
+        'experience_non_ippi',
+        'preparer_name',
+        'negotiator_name',
+        'approver_name',
+        'selected_vendor_name',
+        'signature_data',
     ];
 
     protected function casts(): array
@@ -30,6 +47,7 @@ class ProposalHarga extends Model
         return [
             'nominal_request' => 'decimal:2',
             'approval_step'   => 'integer',
+            'items_data'      => 'array',
         ];
     }
 
@@ -59,11 +77,27 @@ class ProposalHarga extends Model
     }
 
     /**
+     * PH terkait dengan satu Cost Center.
+     */
+    public function costCenterRelation(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\CostCenter::class, 'cost_center_id');
+    }
+
+    /**
      * PH yang disetujui menghasilkan satu Internal Agreement.
      */
     public function internalAgreement(): HasOne
     {
         return $this->hasOne(InternalAgreement::class, 'ph_id');
+    }
+
+    /**
+     * Riwayat approval Proposal Harga (tanda tangan digital).
+     */
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(PhApproval::class, 'ph_id')->orderBy('step');
     }
 
     // =========================================================
@@ -126,12 +160,12 @@ class ProposalHarga extends Model
      */
     public static function generateNumber(): string
     {
-        $month = now()->locale('id')->isoFormat('MMM'); // Jan, Feb, ...
+        $romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+        $monthRoman = $romans[now()->month - 1];
         $year  = now()->year;
         
+        // Ambil record terakhir secara keseluruhan agar nomor terus berlanjut
         $lastRecord = static::withTrashed()
-                            ->whereYear('created_at', $year)
-                            ->whereMonth('created_at', now()->month)
                             ->orderBy('id', 'desc')
                             ->first();
 
@@ -141,6 +175,6 @@ class ProposalHarga extends Model
         }
 
         $seqStr = str_pad($seq, 3, '0', STR_PAD_LEFT);
-        return "{$seqStr}/PURCH/IPPI/{$month}/{$year}";
+        return "{$seqStr}/PURCH/IPPI/{$monthRoman}/{$year}";
     }
 }

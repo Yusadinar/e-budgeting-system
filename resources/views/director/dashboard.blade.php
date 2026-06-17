@@ -18,7 +18,7 @@
         <span class="text-amber-600">{{ Str::words($user->name, 1, '') }}</span> 🏢
     </h2>
     <p class="text-sm text-slate-500 mt-0.5">
-        {{ match($user->role) { 'man_dir' => 'Manufacturing Director', 'fin_dir' => 'Finance & Human Capital Director', default => 'President Director' } }}
+        {{ match($user->role) { 'man_dir' => 'Manufacturing Director', 'fin_dir' => 'Finance & Human Capital Director', 'prod_dir' => 'Production Director', 'pres_dir' => 'President Director', default => 'Director Dashboard' } }}
         · Monitoring Perusahaan · FY{{ $year }}
     </p>
 </div>
@@ -35,7 +35,7 @@
         <div class="flex-1">
             <h3 class="text-sm font-semibold text-amber-800">Persetujuan Anda Dibutuhkan</h3>
             <p class="text-sm text-amber-700 mt-1">
-                Terdapat <strong>{{ $pendingApprovalDir }}</strong> Internal Agreement yang menunggu persetujuan Anda.
+                Terdapat <strong>{{ $pendingApprovalDir }}</strong> dokumen pengajuan yang menunggu persetujuan Anda.
             </p>
             <a href="{{ route('tracking.index') }}" class="inline-flex items-center mt-2 text-xs font-semibold text-amber-800 hover:text-amber-900 bg-amber-200/50 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors">
                 Buka Daftar Pengajuan &rarr;
@@ -186,7 +186,7 @@
             @endif
         </div>
 
-        @if($pendingIaList->isEmpty())
+        @if($pendingList->isEmpty())
         <div class="text-center py-8">
             <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-2">
                 <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -195,22 +195,21 @@
         </div>
         @else
         <div class="space-y-2.5">
-            @foreach($pendingIaList as $ia)
-            <a href="{{ route('tracking.show', $ia->proposalHarga?->ppbj_id) }}" class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition-colors group">
+            @foreach($pendingList as $item)
+            <a href="{{ route('tracking.show', $item->id) }}" class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition-colors group">
                 <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
                     <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/></svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-slate-700 truncate group-hover:text-indigo-600 transition-colors">{{ $ia->proposalHarga?->subject ?? $ia->ia_number }}</p>
+                    <p class="text-sm font-medium text-slate-700 truncate group-hover:text-indigo-600 transition-colors">{{ $item->latestProposalHarga->subject ?? $item->ppbj_number }}</p>
                     <div class="flex items-center gap-2 mt-0.5">
-                        <span class="text-[11px] text-slate-400">{{ $ia->proposalHarga?->ppbj?->user?->name ?? '-' }}</span>
+                        <span class="text-[11px] text-slate-400">{{ $item->user->name ?? '-' }}</span>
                         <span class="text-slate-300">·</span>
-                        <span class="text-[11px] text-slate-400">{{ $ia->proposalHarga?->ppbj?->user?->department?->dept_name ?? '-' }}</span>
+                        <span class="text-[11px] text-slate-400">{{ $item->user->department->dept_name ?? '-' }}</span>
                     </div>
                 </div>
                 <div class="text-right shrink-0">
-                    <p class="text-sm font-semibold text-slate-800">Rp {{ number_format($ia->final_nominal / 1_000_000, 0, ',', '.') }} Jt</p>
-                    <p class="text-[10px] text-slate-400 mt-0.5">{{ $ia->updated_at->diffForHumans() }}</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">{{ $item->updated_at->diffForHumans() }}</p>
                 </div>
             </a>
             @endforeach
@@ -226,6 +225,61 @@
         @endif
     </div>
 
+</div>
+
+{{-- Row 4: Detail Budget Cost Center --}}
+<div class="mt-5 bg-white rounded-2xl border border-slate-100 p-5 shadow-card animate-page-delay-5">
+    <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div>
+            <h3 class="text-sm font-semibold text-slate-800">Detail Anggaran per Cost Center</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Monitoring serapan budget hingga level operasional terkecil (FY{{ $year }})</p>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-slate-50/60 border-b border-slate-100">
+                    <th class="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Cost Center</th>
+                    <th class="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Departemen</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Pagu</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Terpakai</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Sisa</th>
+                    <th class="text-center py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider" style="min-width: 120px">Utilisasi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                @forelse($costCenterBudgets as $cc)
+                <tr class="hover:bg-violet-50/30 transition-colors">
+                    <td class="py-3 px-4">
+                        <div class="font-medium text-slate-800">{{ $cc['name'] }}</div>
+                        <div class="text-[10px] text-slate-400 font-mono mt-0.5">{{ $cc['code'] ?: 'N/A' }}</div>
+                    </td>
+                    <td class="py-3 px-4 text-xs text-slate-500">{{ $cc['dept_name'] }}</td>
+                    <td class="py-3 px-4 text-right text-slate-700">Rp {{ number_format($cc['plan'] / 1000000, 0, ',', '.') }} Jt</td>
+                    <td class="py-3 px-4 text-right text-violet-600 font-medium">Rp {{ number_format($cc['used'] / 1000000, 0, ',', '.') }} Jt</td>
+                    <td class="py-3 px-4 text-right {{ $cc['sisa'] < 0 ? 'text-rose-600' : 'text-emerald-600' }} font-medium">Rp {{ number_format($cc['sisa'] / 1000000, 0, ',', '.') }} Jt</td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-700
+                                     {{ $cc['utilization'] >= 90 ? 'bg-rose-500' : ($cc['utilization'] >= 75 ? 'bg-amber-500' : 'bg-violet-500') }}"
+                                     style="width: {{ min($cc['utilization'], 100) }}%"></div>
+                            </div>
+                            <span class="text-[10px] font-semibold w-8 text-right
+                                {{ $cc['utilization'] >= 90 ? 'text-rose-600' : ($cc['utilization'] >= 75 ? 'text-amber-600' : 'text-violet-600') }}">
+                                {{ $cc['utilization'] }}%
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="6" class="py-8 text-center text-slate-400 text-sm">Data detail cost center belum tersedia.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 
 @endsection

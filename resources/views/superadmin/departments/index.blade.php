@@ -25,10 +25,9 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     @forelse($departments as $i => $dept)
     @php
-        $budget = $dept->currentBudget;
-        $plan = (float) ($budget?->total_plan ?? 0);
-        $used = (float) ($budget?->total_used ?? 0);
-        $reserved = (float) ($budget?->total_reserved ?? 0);
+        $plan = (float) $dept->total_plan;
+        $used = (float) $dept->total_used;
+        $reserved = (float) $dept->total_reserved;
         $remaining = $plan - $used - $reserved;
         $utilPct = $plan > 0 ? round(($used / $plan) * 100, 1) : 0;
     @endphp

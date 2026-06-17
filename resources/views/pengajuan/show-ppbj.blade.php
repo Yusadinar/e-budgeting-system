@@ -2,132 +2,279 @@
 @section('title', 'Detail PPBJ — ' . $ppbj->ppbj_number)
 @section('page-title', 'Detail PPBJ')
 @section('page-subtitle', $ppbj->ppbj_number)
-
 @push('styles')
 <style>
 @media print {
+    @page {
+        size: A4 portrait;
+        margin: 5mm;
+    }
+    body { 
+        background:#fff!important; 
+        zoom: 85%; 
+        -webkit-print-color-adjust: exact; 
+        print-color-adjust: exact; 
+    }
     #sidebar, #sidebar-overlay, header, footer, .no-print { display:none!important; }
     #main-content { margin:0!important; }
     main { padding:0!important; }
-    .paper { box-shadow:none!important; border:none!important; }
-    body { background:#fff!important; }
+    .paper-wrapper { overflow: visible!important; }
+    .paper { box-shadow:none!important; border:none!important; padding: 0!important; margin: 0!important; width: 100%!important; box-sizing: border-box!important; min-height: auto!important; display: block!important; }
+    .paper::before { display: none; }
+}
+.paper-wrapper {
+    overflow-x: auto;
+    padding-bottom: 24px;
 }
 .paper {
-    background:#fff; max-width:900px; margin:0 auto;
+    background:#fff; width:210mm; min-height:297mm; margin:0 auto;
     border:1px solid #cbd5e1; border-radius:4px;
     box-shadow:0 4px 24px rgba(0,0,0,.08);
-    padding:32px 40px; font-size:13px; color:#1e293b; line-height:1.5;
-    position:relative;
+    padding:24px 32px; font-size:11px; color:#000; line-height:1.4;
+    position:relative; display:flex; flex-direction:column;
 }
-.paper::before { content:''; position:absolute; top:0; left:0; right:0; height:6px; background:linear-gradient(90deg,#4f46e5,#6366f1,#818cf8); border-radius:4px 4px 0 0; }
-.doc-title { text-align:center; font-size:16px; font-weight:700; color:#1e1b4b; margin-bottom:2px; }
-.doc-sub { text-align:center; font-size:11px; color:#64748b; margin-bottom:16px; }
-.doc-number { text-align:center; font-size:13px; font-weight:600; color:#4f46e5; margin-bottom:20px; padding:6px 0; border:1px dashed #c7d2fe; background:#eef2ff; border-radius:4px; }
-.info-grid { display:grid; grid-template-columns:1fr 1fr; border:1px solid #cbd5e1; }
-.info-cell { padding:8px 12px; border:1px solid #e2e8f0; }
+.paper::before { content:''; position:absolute; top:0; left:0; right:0; height:6px; background:#000; border-radius:4px 4px 0 0; }
+.doc-title { text-align:center; font-size:16px; font-weight:700; color:#000; text-decoration:underline; text-underline-offset:4px; margin-bottom:4px; text-transform:uppercase; }
+.doc-sub { text-align:center; font-size:11px; color:#000; margin-bottom:16px; font-weight:bold; }
+.doc-number { text-align:center; font-size:13px; font-weight:bold; color:#000; margin-bottom:20px; }
+.info-grid { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid #000; border-left:1px solid #000; }
+.info-cell { padding:6px 10px; border-bottom:1px solid #000; border-right:1px solid #000; }
 .info-cell.full { grid-column:1/-1; }
-.info-label { font-size:11px; font-weight:600; color:#475569; margin-bottom:2px; }
-.info-value { font-size:12px; color:#1e293b; }
-.section-head { background:#f1f5f9; font-size:12px; font-weight:700; color:#334155; padding:8px 12px; text-transform:uppercase; letter-spacing:.5px; border:1px solid #e2e8f0; grid-column:1/-1; }
-.sign-table { width:100%; border-collapse:collapse; margin-top:16px; }
-.sign-table td,.sign-table th { border:1px solid #e2e8f0; padding:6px 10px; font-size:11px; text-align:center; }
-.sign-table th { background:#f1f5f9; font-weight:600; }
-.sign-box { height:50px; }
-.status-badge { display:inline-flex; padding:3px 10px; border-radius:99px; font-size:11px; font-weight:600; }
-.btn-print { display:inline-flex; align-items:center; gap:6px; padding:8px 20px; background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; }
-.btn-print:hover { background:#e2e8f0; }
-@media(max-width:768px) { .paper { padding:16px; } .info-grid { grid-template-columns:1fr; } }
+.info-label { font-size:10px; font-weight:bold; color:#000; margin-bottom:2px; text-transform:uppercase; }
+.info-value { font-size:11px; color:#000; }
+.section-head { background:#f3f4f6; font-size:11px; font-weight:bold; color:#000; padding:6px 10px; text-transform:uppercase; border-bottom:1px solid #000; border-right:1px solid #000; grid-column:1/-1; }
+.sign-table { width:100%; border-collapse:collapse; margin-top:10px; border:1px solid #000; }
+.sign-table td,.sign-table th { border:1px solid #000; padding:4px 6px; font-size:10px; text-align:center; color:#000; }
+.sign-table th { background:#f3f4f6; font-weight:bold; }
+.sign-box { height:70px; }
+.align-table { width: 100%; border-collapse: collapse; border: none; margin: 0; }
+.align-table td { padding: 1px 0; border: none; vertical-align: top; font-size: 11px; color: #000; text-align: left; }
+.align-table td.lbl { width: 65px; color: #000; font-weight:bold; }
+.align-table td.cln { width: 10px; text-align: center; color: #000; font-weight:bold; }
+/* @media(max-width:768px) { .paper { padding:16px; width:100%; } .info-grid { grid-template-columns:1fr; } } */
 </style>
 @endpush
 
 @section('content')
-<div class="no-print" style="text-align:center;margin-bottom:16px;">
-    <button onclick="window.print()" class="btn-print">
-        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"/></svg>
-        Cetak / Print PDF
+<div class="max-w-[210mm] mx-auto w-full mb-4 relative flex items-center justify-between no-print animate-page">
+    <button type="button" onclick="if(window.history.length <= 1) { window.close(); } else { history.back(); }" class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors bg-white/50 px-3 py-1.5 rounded-lg border border-slate-200/50 hover:bg-white hover:shadow-sm">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        <span class="hidden sm:inline">Kembali</span>
+        <span class="sm:hidden">Back</span>
     </button>
-    <span class="status-badge" style="margin-left:12px;{{ $ppbj->status === 'Approved' ? 'background:#dcfce7;color:#16a34a;' : ($ppbj->status === 'Rejected' ? 'background:#fef2f2;color:#dc2626;' : 'background:#fef9c3;color:#ca8a04;') }}">
-        {{ str_replace('_', ' ', $ppbj->status) }}
-    </span>
+    
+    <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 hidden sm:flex">
+        <span class="inline-flex items-center px-5 py-2 rounded-full text-sm font-bold tracking-widest uppercase shadow-sm border border-black/5" style="{{ $ppbj->status === 'Approved' ? 'background:#dcfce7;color:#16a34a;' : ($ppbj->status === 'Rejected' ? 'background:#fef2f2;color:#dc2626;' : 'background:#fef9c3;color:#ca8a04;') }}">
+            {{ str_replace('_', ' ', $ppbj->status) }}
+        </span>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <span class="sm:hidden inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-sm" style="{{ $ppbj->status === 'Approved' ? 'background:#dcfce7;color:#16a34a;' : ($ppbj->status === 'Rejected' ? 'background:#fef2f2;color:#dc2626;' : 'background:#fef9c3;color:#ca8a04;') }}">
+            {{ str_replace('_', ' ', $ppbj->status) }}
+        </span>
+        <button onclick="window.print()" class="justify-center inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+            </svg>
+            <span class="hidden sm:inline">Cetak Dokumen</span>
+            <span class="sm:hidden">Cetak</span>
+        </button>
+    </div>
 </div>
 
-<div class="paper animate-page">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <img src="{{ asset('images/ippi_logo.jpg') }}" alt="Logo" style="height:48px;">
-        <div style="text-align:right;font-size:10px;color:#64748b;">PT INTI PANTJA PRESS INDUSTRI</div>
-    </div>
-    <div class="doc-title">PERMOHONAN PENGADAAN BARANG / JASA (PPBJ)</div>
-    <div class="doc-sub">Tanggal: {{ $ppbj->created_at->format('d M Y H:i') }} WIB</div>
-    <div class="doc-number">No PPBJ: {{ $ppbj->ppbj_number }}</div>
+<div class="sm:hidden text-center text-[11px] text-slate-500 mb-2 no-print animate-page-delay-1 flex items-center justify-center gap-1.5 bg-indigo-50 py-1.5 rounded-lg max-w-[210mm] mx-auto">
+    <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+    <span>Geser area dokumen untuk melihat seluruh isi form</span>
+</div>
 
-    <div class="info-grid">
-        <div class="section-head">A. Data Umum</div>
-        <div class="info-cell"><div class="info-label">Department/Section</div><div class="info-value">{{ $ppbj->department_section }}</div></div>
-        <div class="info-cell"><div class="info-label">IA No.</div><div class="info-value">{{ $ppbj->ia_no ?: '—' }}</div></div>
-        <div class="info-cell"><div class="info-label">Subject</div><div class="info-value">{{ $ppbj->subject }}</div></div>
-        <div class="info-cell"><div class="info-label">IO/FR No.</div><div class="info-value">{{ $ppbj->io_fr_no ?: '—' }}</div></div>
-        <div class="info-cell"><div class="info-label">Nama Barang/Jasa</div><div class="info-value">{{ $ppbj->nama_barang_jasa }}</div></div>
-        <div class="info-cell"><div class="info-label">Qty & UoM</div><div class="info-value">{{ $ppbj->qty }} {{ $ppbj->uom }}</div></div>
-        <div class="info-cell"><div class="info-label">Spesifikasi</div><div class="info-value">{{ $ppbj->spesifikasi }}</div></div>
-        <div class="info-cell"><div class="info-label">Pernah Order</div><div class="info-value">{{ ucfirst($ppbj->pernah_order) }}{{ $ppbj->pernah_order === 'sudah' ? ' — ' . $ppbj->pernah_order_bulan : '' }}</div></div>
+<div class="paper-wrapper">
+    <div class="paper animate-page" style="font-family: Arial, Helvetica, sans-serif;">
+        <div class="p-4 flex-1 flex flex-col">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+                <img src="{{ asset('images/ippi-logo.png') }}" alt="Logo" style="height:40px;">
+                <div style="text-align:right;font-size:10px;color:#000;font-weight:bold;display:flex;flex-direction:column;align-items:flex-end;">
+                    PT INTI PANTJA PRESS INDUSTRI
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ urlencode(route('tracking.show', $ppbj->id)) }}" alt="QR Code" style="width:60px;height:60px;margin-top:6px;" />
+                </div>
+            </div>
+            <div class="doc-title">Permohonan Pengadaan Barang / Jasa (PPBJ)</div>
+            <div class="doc-sub">No. PPBJ: {{ $ppbj->ppbj_number }}</div>
 
-        <div class="section-head">B. Background 5W+1H & Risk</div>
-        <div class="info-cell">
-            <div class="info-label">Background / Problem</div>
-            @foreach(['what'=>'What','why'=>'Why','when'=>'When','where'=>'Where','who'=>'Who','how'=>'How'] as $k => $l)
-            <div style="margin-bottom:4px;"><strong style="color:#6366f1;font-size:11px;">{{ $l }}:</strong> <span class="info-value">{{ $ppbj->{'bg_'.$k} }}</span></div>
-            @endforeach
-        </div>
-        <div class="info-cell"><div class="info-label">Risk Analysis</div><div class="info-value" style="white-space:pre-wrap;">{{ $ppbj->risk_analysis }}</div></div>
+            <div class="info-grid mb-2">
+                <div class="section-head">A. Data Umum</div>
+                <div class="info-cell"><div class="info-label">Department/Section</div><div class="info-value">{{ $ppbj->department_section }}</div></div>
+                <div class="info-cell"><div class="info-label">IA No.</div><div class="info-value">&nbsp;</div></div>
+                <div class="info-cell"><div class="info-label">Subject</div><div class="info-value">{{ $ppbj->subject }}</div></div>
+                <div class="info-cell"><div class="info-label">IO/FR No.</div><div class="info-value">&nbsp;</div></div>
+                <div class="info-cell"><div class="info-label">Nama Barang/Jasa</div><div class="info-value">{{ $ppbj->nama_barang_jasa }}</div></div>
+                <div class="info-cell"><div class="info-label">Qty & UoM</div><div class="info-value">{{ $ppbj->qty }} {{ $ppbj->uom }}</div></div>
+                <div class="info-cell"><div class="info-label">Spesifikasi</div><div class="info-value">{{ $ppbj->spesifikasi }}</div></div>
+                <div class="info-cell"><div class="info-label">Pernah Order</div><div class="info-value">{{ ucfirst($ppbj->pernah_order) }}{{ $ppbj->pernah_order === 'sudah' ? ' — ' . $ppbj->pernah_order_bulan : '' }}</div></div>
 
-        <div class="section-head">C. Condition & Spec</div>
-        <div class="info-cell">
-            <div class="info-label">Condition Photo</div>
-            @if($ppbj->condition_photo)<img src="{{ asset('storage/'.$ppbj->condition_photo) }}" style="max-height:180px;border-radius:4px;">@else <span class="info-value">—</span> @endif
-        </div>
-        <div class="info-cell">
-            <div class="info-label">Detail Specification</div>
-            <div class="info-value">Brand: {{ $ppbj->spec_brand }}<br>Maker: {{ $ppbj->spec_maker }}<br>Negara: {{ $ppbj->spec_negara_asal }}<br>Lain: {{ $ppbj->spec_lain_lain ?: '—' }}</div>
-            <hr style="margin:8px 0;border-color:#e2e8f0;">
-            <div class="info-label">Urgency</div>
-            <div class="info-value">Level: {{ ucfirst($ppbj->urgency_level) }}<br>Line stop: {{ $ppbj->potensi_line_stop ?: '—' }}</div>
-            @if($ppbj->urgency_options)<div class="info-value" style="margin-top:4px;">Options: {{ implode(', ', array_map(fn($o) => str_replace('_',' ',$o), $ppbj->urgency_options)) }}</div>@endif
-            <hr style="margin:8px 0;border-color:#e2e8f0;">
-            <div class="info-label">Budget/Estimasi</div>
-            <div class="info-value">Tipe: {{ strtoupper($ppbj->budget_type) }}<br>Range: {{ App\Models\Ppbj::budgetAmountRanges()[$ppbj->budget_amount_range] ?? $ppbj->budget_amount_range }}</div>
-        </div>
+                <div class="section-head">B. Background 5W+1H & Risk</div>
+                <div class="info-cell">
+                    <div class="info-label">Background / Problem</div>
+                    <table class="align-table">
+                    @foreach(['what'=>'What','why'=>'Why','when'=>'When','where'=>'Where','who'=>'Who','how'=>'How'] as $k => $l)
+                        <tr>
+                            <td class="lbl">{{ strtolower(chr(ord('a') + $loop->index)) }}. {{ $l }}</td>
+                            <td class="cln">:</td>
+                            <td style="padding-bottom:6px;">{{ $ppbj->{'bg_'.$k} }}</td>
+                        </tr>
+                    @endforeach
+                    </table>
+                </div>
+                <div class="info-cell"><div class="info-label">Risk Analysis</div><div class="info-value" style="white-space:pre-wrap;">{{ $ppbj->risk_analysis }}</div></div>
 
-        <div class="section-head">D. Layout Area</div>
-        <div class="info-cell">
-            <div class="info-label">Layout Photo</div>
-            @if($ppbj->layout_photo)<img src="{{ asset('storage/'.$ppbj->layout_photo) }}" style="max-height:180px;border-radius:4px;">@else <span class="info-value">—</span> @endif
-        </div>
-        <div class="info-cell">
-            <div class="info-label">Lokasi Penggunaan</div>
-            <div class="info-value">Pressline: {{ $ppbj->lokasi_pressline ?: '—' }}<br>Sub-assy: {{ $ppbj->lokasi_sub_assy ?: '—' }}<br>Metal Finish: {{ $ppbj->lokasi_metal_finish ?: '—' }}<br>Lain: {{ $ppbj->lokasi_lain_lain ?: '—' }}</div>
-        </div>
-    </div>
+                <div class="section-head">C. Condition & Spec</div>
+                <div class="info-cell" style="grid-row:span 2;">
+                    <div class="info-label">Condition Photo</div>
+                    @if($ppbj->condition_photo)<img src="{{ asset('storage/'.$ppbj->condition_photo) }}" style="max-height:140px;border-radius:4px;">@else <span class="info-value">—</span> @endif
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Detail Specification</div>
+                    <table class="align-table">
+                        <tr><td class="lbl">Brand</td><td class="cln">:</td><td>{{ $ppbj->spec_brand }}</td></tr>
+                        <tr><td class="lbl">Maker</td><td class="cln">:</td><td>{{ $ppbj->spec_maker }}</td></tr>
+                        <tr><td class="lbl">Negara</td><td class="cln">:</td><td>{{ $ppbj->spec_negara_asal }}</td></tr>
+                        <tr><td class="lbl">Lain</td><td class="cln">:</td><td>{{ $ppbj->spec_lain_lain ?: '—' }}</td></tr>
+                    </table>
+                </div>
+                <div class="info-cell" style="grid-row:span 2;">
+                    <div class="info-label">Urgency</div>
+                    <table class="align-table">
+                        <tr><td class="lbl">Level</td><td class="cln">:</td><td>{{ ucfirst($ppbj->urgency_level) }}</td></tr>
+                        <tr><td class="lbl">Line stop</td><td class="cln">:</td><td>{{ $ppbj->potensi_line_stop ?: '—' }}</td></tr>
+                        @if($ppbj->urgency_options)
+                        <tr><td class="lbl">Options</td><td class="cln">:</td><td>{{ implode(', ', array_map(fn($o) => str_replace('_',' ',$o), $ppbj->urgency_options)) }}</td></tr>
+                        @endif
+                    </table>
+                </div>
+                <div class="info-cell" style="display:flex; flex-direction:column; justify-content:center;">
+                    <div class="info-label">Budget/Estimasi</div>
+                    <table class="align-table">
+                        <tr><td class="lbl">Tipe</td><td class="cln">:</td><td>{{ strtoupper($ppbj->budget_type) }}</td></tr>
+                        <tr><td class="lbl">Range</td><td class="cln">:</td><td>{{ App\Models\Ppbj::budgetAmountRanges()[$ppbj->budget_amount_range] ?? $ppbj->budget_amount_range }}</td></tr>
+                    </table>
+                </div>
 
-    <table class="sign-table">
-        <thead><tr>
-            <th colspan="3" style="background:#eef2ff;color:#4f46e5;">Disetujui ***</th>
-            <th colspan="2" style="background:#f0fdf4;color:#16a34a;">Diperiksa</th>
-            <th style="background:#fefce8;color:#ca8a04;">Dibuat</th>
-        </tr></thead>
-        <tbody>
-            <tr>
-                <td style="font-size:10px;color:#64748b;">Kadiv Incharge</td>
-                <td style="font-size:10px;color:#64748b;">Direktur Incharge</td>
-                <td style="font-size:10px;color:#64748b;">Presdir</td>
-                <td style="font-size:10px;color:#64748b;">Ka.sie Purch</td>
-                <td style="font-size:10px;color:#64748b;">Ka.dept M Rajief</td>
-                <td style="font-size:10px;color:#64748b;">Ka Sie: Deddy S</td>
-            </tr>
-            <tr><td class="sign-box"></td><td class="sign-box"></td><td class="sign-box"></td><td class="sign-box"></td><td class="sign-box"></td><td class="sign-box"></td></tr>
-        </tbody>
-    </table>
-    <div style="margin-top:6px;font-size:10px;color:#94a3b8;">
-        <strong>***</strong> ≤ 50jt: Kadiv | 50jt-100jt: s/d Direktur | > 100jt: s/d Presdir
+                <div class="section-head">D. Layout Area</div>
+                <div class="info-cell">
+                    <div class="info-label">Layout Photo</div>
+                    @if($ppbj->layout_photo)<img src="{{ asset('storage/'.$ppbj->layout_photo) }}" style="max-height:140px;border-radius:4px;">@else <span class="info-value">—</span> @endif
+                </div>
+                <div class="info-cell">
+                    <div class="info-label">Lokasi Penggunaan</div>
+                    <table class="align-table">
+                        <tr><td class="lbl">Pressline</td><td class="cln">:</td><td>{{ $ppbj->lokasi_pressline ?: '—' }}</td></tr>
+                        <tr><td class="lbl">Sub-assy</td><td class="cln">:</td><td>{{ $ppbj->lokasi_sub_assy ?: '—' }}</td></tr>
+                        <tr><td class="lbl">Metal Finish</td><td class="cln">:</td><td>{{ $ppbj->lokasi_metal_finish ?: '—' }}</td></tr>
+                        <tr><td class="lbl">Lain</td><td class="cln">:</td><td>{{ $ppbj->lokasi_lain_lain ?: '—' }}</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            @php
+                $approvalsByStep = $ppbj->approvals->keyBy('step');
+                
+                $columns = [
+                    5 => 'President Director',
+                    4 => 'Finance Director',
+                    3 => 'Ka. Div Finance',
+                    2 => 'Ka. Sie Purc.',
+                    1 => 'Ka. Dept Terkait',
+                ];
+            @endphp
+
+            <div class="mt-auto">
+                <table class="sign-table">
+                    <thead><tr>
+                        <th colspan="3">DISETUJUI</th>
+                        <th colspan="2">DIPERIKSA</th>
+                        <th>DIBUAT</th>
+                    </tr></thead>
+                    <tbody>
+                        {{-- Row 1: Jabatan --}}
+                        <tr>
+                            @foreach($columns as $step => $label)
+                            <td style="font-size:10px;font-weight:bold;">{{ strtoupper($label) }}</td>
+                            @endforeach
+                            <td style="font-size:10px;font-weight:bold;">{{ strtoupper($ppbj->user->role_label) }}</td>
+                        </tr>
+                        {{-- Row 2: Tanda tangan --}}
+                        <tr>
+                            @php
+                                $rangePPBJ = $ppbj->budget_amount_range;
+                                $maxStepPPBJ = 3; // Default sampai Ka. Div Finance (<= 50jt)
+                                if ($rangePPBJ === '50m_to_100m') {
+                                    $maxStepPPBJ = 4; // Sampai Finance Director
+                                } elseif (in_array($rangePPBJ, ['100m_to_500m', '500m_to_1b', 'over_1b'])) {
+                                    $maxStepPPBJ = 5; // Sampai President Director
+                                }
+                            @endphp
+                            @foreach($columns as $step => $label)
+                            <td class="sign-box" style="vertical-align:middle;text-align:center;overflow:hidden; position:relative;">
+                                @if($step > $maxStepPPBJ)
+                                    <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0.2; pointer-events: none;">
+                                        <svg style="width: 100%; height: 100%; color: black;" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                            <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" stroke-width="1.5" />
+                                            <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" stroke-width="1.5" />
+                                        </svg>
+                                    </div>
+                                @elseif($approval = $approvalsByStep->get($step))
+                                    @if($approval->action === 'approved' && $approval->signature_data)
+                                        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                                            <img src="{{ $approval->signature_data }}" alt="TTD" style="height:35px;transform:scale(1.8);transform-origin:center; mix-blend-mode: multiply; filter: grayscale(100%);">
+                                        </div>
+                                    @elseif($approval->action === 'rejected')
+                                        <span style="font-size:10px;font-weight:bold;">✕ DITOLAK</span>
+                                    @endif
+                                @elseif((int) $ppbj->approval_step === $step && $ppbj->status === 'In_Review')
+                                    <span style="font-size:9px;">Menunggu</span>
+                                @endif
+                            </td>
+                            @endforeach
+                            <td class="sign-box" style="vertical-align:middle;text-align:center;overflow:hidden;">
+                                @if($approvalCreator = $approvalsByStep->get(0))
+                                    @if($approvalCreator->signature_data)
+                                        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                                            <img src="{{ $approvalCreator->signature_data }}" alt="TTD" style="height:35px;transform:scale(1.8);transform-origin:center; mix-blend-mode: multiply; filter: grayscale(100%);">
+                                        </div>
+                                    @else
+                                        <span style="font-size:9px;font-weight:bold;">✓ Diajukan</span>
+                                    @endif
+                                @else
+                                    <span style="font-size:9px;font-weight:bold;">✓ Diajukan</span>
+                                @endif
+                            </td>
+                        </tr>
+                        {{-- Row 3: Nama --}}
+                        <tr>
+                            @foreach($columns as $step => $label)
+                            <td style="font-size:10px;font-weight:bold;">
+                                @if($approval = $approvalsByStep->get($step))
+                                    {{ strtoupper($approval->user->name) }}
+                                @elseif($step === 2 && !isset($approvalsByStep[2]))
+                                    BRAMANSYAH B.I.
+                                @else
+                                    —
+                                @endif
+                            </td>
+                            @endforeach
+                            <td style="font-size:10px;font-weight:bold;">
+                                {{ strtoupper($ppbj->user->name) }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top:6px;font-size:9px;font-weight:bold;">
+                    *** Keterangan: ≤ 50jt: Kadiv | 50jt-100jt: s/d Direktur | > 100jt: s/d Presdir
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

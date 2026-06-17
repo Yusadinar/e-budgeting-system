@@ -154,7 +154,7 @@
     </div>
 
     {{-- ── FORM REVIEW + TABLE ───────────────────────────── --}}
-    <form method="POST" action="{{ route('budget.upload.store') }}" id="reviewForm">
+    <form method="POST" action="{{ route('budget.upload.store') }}" id="reviewForm" class="space-y-6">
         @csrf
 
         {{-- Hidden fields --}}
@@ -200,7 +200,7 @@
                 {{-- Tahun --}}
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Tahun Fiskal</label>
-                    <select name="fiscal_year" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-800 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-all">
+                    <select name="fiscal_year" id="fiscalYearSelect" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-800 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-all">
                         @for($y = now()->year - 1; $y <= now()->year + 3; $y++)
                         <option value="{{ $y }}" {{ $parsed['fiscal_year'] == $y ? 'selected' : '' }}>{{ $y }}</option>
                         @endfor
@@ -224,14 +224,22 @@
                     <h3 class="text-sm font-bold text-slate-800">Item Budget</h3>
                     <p class="text-xs text-slate-400 mt-0.5">Klik pada sel untuk mengedit nilai. Tambah baris jika diperlukan.</p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
                     <div class="summary-chip">
                         <span class="chip-value" id="totalItems">{{ count($parsed['items']) }}</span>
                         <span class="chip-label">Items</span>
                     </div>
-                    <div class="summary-chip">
-                        <span class="chip-value text-indigo-600" id="totalAmount">Rp {{ number_format($parsed['total_amount'], 0, ',', '.') }}</span>
-                        <span class="chip-label">Total 2026</span>
+                    <div class="summary-chip border-emerald-200 bg-emerald-50">
+                        <span class="chip-value text-emerald-700" id="currentBudget" data-val="{{ $dept->remaining_budget }}">Rp {{ number_format($dept->remaining_budget, 0, ',', '.') }}</span>
+                        <span class="chip-label text-emerald-600">Sisa Pagu Saat Ini</span>
+                    </div>
+                    <div class="summary-chip border-amber-200 bg-amber-50">
+                        <span class="chip-value text-amber-700" id="totalAmount">Rp {{ number_format($parsed['total_amount'], 0, ',', '.') }}</span>
+                        <span class="chip-label text-amber-600">Total Upload</span>
+                    </div>
+                    <div class="summary-chip border-indigo-200 bg-indigo-50 shadow-sm">
+                        <span class="chip-value text-indigo-700" id="projectedBudget">Rp 0</span>
+                        <span class="chip-label text-indigo-600 font-bold">Perkiraan Pagu Baru</span>
                     </div>
                 </div>
             </div>
@@ -240,22 +248,25 @@
                 <table class="review-table w-full border-collapse" id="itemTable">
                     <thead>
                         <tr>
-                            <th class="text-center w-10">No</th>
-                            <th class="min-w-48">Description</th>
-                            <th>Cost Center</th>
-                            <th>AJU / IA</th>
-                            <th>Preventive</th>
-                            <th class="text-right">2025 (Rp)</th>
-                            <th class="text-right bg-indigo-50 text-indigo-600">2026 (Rp)</th>
-                            <th class="text-right">2027 (Rp)</th>
-                            <th class="text-right">Actual Jan</th>
-                            <th class="text-right">Actual Feb</th>
-                            <th class="text-right">Actual Mar</th>
-                            <th class="text-right">Actual Apr</th>
-                            <th class="text-right">Actual Mei</th>
-                            <th class="text-right">Total Actual</th>
-                            <th class="text-right">Saldo</th>
-                            <th class="w-8"></th>
+                            <th rowspan="2" class="text-center w-10">No</th>
+                            <th rowspan="2" class="min-w-48">Description</th>
+                            <th rowspan="2">Cost Center</th>
+                            <th rowspan="2">AJU / IA</th>
+                            <th rowspan="2">Preventive</th>
+                            <th rowspan="2" class="text-right" id="colPrevYear">{{ $parsed['fiscal_year'] - 1 }} (Rp)</th>
+                            <th rowspan="2" class="text-right bg-indigo-50 text-indigo-600" id="colCurrentYear">{{ $parsed['fiscal_year'] }} (Rp)</th>
+                            <th rowspan="2" class="text-right" id="colNextYear">{{ $parsed['fiscal_year'] + 1 }} (Rp)</th>
+                            <th colspan="7" id="actualYearLabel" class="text-center bg-slate-200 text-slate-700 border-b border-slate-300">ACTUAL {{ $parsed['fiscal_year'] }}</th>
+                            <th rowspan="2" class="w-8"></th>
+                        </tr>
+                        <tr>
+                            <th class="text-right border-l border-slate-200">Jan</th>
+                            <th class="text-right">Feb</th>
+                            <th class="text-right">Mar</th>
+                            <th class="text-right">Apr</th>
+                            <th class="text-right">Mei</th>
+                            <th class="text-right bg-slate-100">Total Actual</th>
+                            <th class="text-right bg-slate-100">Saldo</th>
                         </tr>
                     </thead>
                     <tbody id="itemBody">
@@ -287,56 +298,54 @@
                                        class="cell-input">
                             </td>
                             <td>
-                                <input type="number" name="items[{{ $i }}][amount_2025]"
-                                       value="{{ $item['amount_2025'] ?? 0 }}"
-                                       class="cell-input amount" min="0" step="1"
-                                       oninput="recalcTotal()">
+                                <input type="text" name="items[{{ $i }}][amount_2025]"
+                                       value="{{ number_format($item['amount_2025'] ?? 0, 0, '', '.') }}"
+                                       class="cell-input amount" oninput="formatNum(this); recalcRow(this)">
                             </td>
                             <td class="bg-indigo-50/50">
-                                <input type="number" name="items[{{ $i }}][amount_2026]"
-                                       value="{{ $item['amount_2026'] ?? 0 }}"
-                                       class="cell-input amount !border-indigo-200 font-semibold text-indigo-700" min="0" step="1"
-                                       oninput="recalcTotal()">
+                                <input type="text" name="items[{{ $i }}][amount_2026]"
+                                       value="{{ number_format($item['amount_2026'] ?? 0, 0, '', '.') }}"
+                                       class="cell-input amount !border-indigo-200 font-semibold text-indigo-700" oninput="formatNum(this); recalcRow(this)">
                             </td>
                             <td>
-                                <input type="number" name="items[{{ $i }}][amount_2027]"
-                                       value="{{ $item['amount_2027'] ?? 0 }}"
-                                       class="cell-input amount" min="0" step="1">
+                                <input type="text" name="items[{{ $i }}][amount_2027]"
+                                       value="{{ number_format($item['amount_2027'] ?? 0, 0, '', '.') }}"
+                                       class="cell-input amount" oninput="formatNum(this); recalcRow(this)">
                             </td>
                             <td>
-                                <input type="number" name="items[{{ $i }}][actual_jan]"
-                                       value="{{ $item['actual_jan'] ?? 0 }}"
-                                       class="cell-input amount" min="0" step="1">
+                                <input type="text" name="items[{{ $i }}][actual_jan]"
+                                       value="{{ number_format($item['actual_jan'] ?? 0, 0, '', '.') }}"
+                                       class="cell-input amount" oninput="formatNum(this); recalcRow(this)">
                             </td>
                             <td>
-                                <input type="number" name="items[{{ $i }}][actual_feb]"
-                                       value="{{ $item['actual_feb'] ?? 0 }}"
-                                       class="cell-input amount" min="0" step="1">
+                                <input type="text" name="items[{{ $i }}][actual_feb]"
+                                       value="{{ number_format($item['actual_feb'] ?? 0, 0, '', '.') }}"
+                                       class="cell-input amount" oninput="formatNum(this); recalcRow(this)">
                             </td>
                             <td>
-                                <input type="number" name="items[{{ $i }}][actual_mar]"
-                                       value="{{ $item['actual_mar'] ?? 0 }}"
-                                       class="cell-input amount" min="0" step="1">
+                                <input type="text" name="items[{{ $i }}][actual_mar]"
+                                       value="{{ number_format($item['actual_mar'] ?? 0, 0, '', '.') }}"
+                                       class="cell-input amount" oninput="formatNum(this); recalcRow(this)">
                             </td>
                             <td>
-                                <input type="number" name="items[{{ $i }}][actual_apr]"
-                                       value="{{ $item['actual_apr'] ?? 0 }}"
-                                       class="cell-input amount" min="0" step="1">
+                                <input type="text" name="items[{{ $i }}][actual_apr]"
+                                       value="{{ number_format($item['actual_apr'] ?? 0, 0, '', '.') }}"
+                                       class="cell-input amount" oninput="formatNum(this); recalcRow(this)">
                             </td>
                             <td>
-                                <input type="number" name="items[{{ $i }}][actual_mei]"
-                                       value="{{ $item['actual_mei'] ?? 0 }}"
-                                       class="cell-input amount" min="0" step="1">
+                                <input type="text" name="items[{{ $i }}][actual_mei]"
+                                       value="{{ number_format($item['actual_mei'] ?? 0, 0, '', '.') }}"
+                                       class="cell-input amount" oninput="formatNum(this); recalcRow(this)">
                             </td>
                             <td>
-                                <input type="number" name="items[{{ $i }}][actual_total]"
-                                       value="{{ $item['actual_total'] ?? 0 }}"
-                                       class="cell-input amount" min="0" step="1">
+                                <input type="text" name="items[{{ $i }}][actual_total]"
+                                       value="{{ number_format($item['actual_total'] ?? 0, 0, '', '.') }}"
+                                       class="cell-input amount bg-slate-50 text-slate-500 font-semibold" readonly tabindex="-1">
                             </td>
                             <td>
-                                <input type="number" name="items[{{ $i }}][saldo]"
-                                       value="{{ $item['saldo'] ?? 0 }}"
-                                       class="cell-input amount" step="1">
+                                <input type="text" name="items[{{ $i }}][saldo]"
+                                       value="{{ number_format($item['saldo'] ?? 0, 0, '', '.') }}"
+                                       class="cell-input amount bg-slate-50 {{ ($item['saldo'] ?? 0) < 0 ? 'text-rose-600 font-semibold' : 'text-slate-500 font-semibold' }}" readonly tabindex="-1">
                             </td>
                             <td class="text-center">
                                 <button type="button" class="del-row-btn w-6 h-6 rounded-md hover:bg-rose-50 flex items-center justify-center" onclick="deleteRow(this)" title="Hapus baris">
@@ -392,13 +401,68 @@
 <script>
 let rowCount = @json(count($parsed['items']));
 
+// ── Auto Format Ribuan ───────────────────────
+function formatNum(input) {
+    let val = input.value.replace(/[^0-9\-]/g, '');
+    if (val === '' || val === '-') {
+        input.value = val;
+        return;
+    }
+    input.value = parseInt(val, 10).toLocaleString('id-ID');
+}
+
 // ── Recalculate totals ─────────────────────
 function recalcTotal() {
     const inputs = document.querySelectorAll('input[name$="[amount_2026]"]');
     let total = 0;
-    inputs.forEach(inp => total += parseFloat(inp.value || 0));
-    document.getElementById('totalAmount').textContent = 'Rp ' + total.toLocaleString('id-ID', { maximumFractionDigits: 0 });
+    inputs.forEach(inp => {
+        let clean = inp.value.replace(/\./g, '');
+        total += parseFloat(clean || 0);
+    });
+    
+    // Update Total Upload
+    document.getElementById('totalAmount').textContent = 'Rp ' + total.toLocaleString('id-ID');
     document.getElementById('totalItems').textContent = document.querySelectorAll('#itemBody tr').length;
+    
+    // Update Projected
+    const currentBudget = parseFloat(document.getElementById('currentBudget').getAttribute('data-val') || 0);
+    const projected = currentBudget + total;
+    document.getElementById('projectedBudget').textContent = 'Rp ' + projected.toLocaleString('id-ID');
+}
+
+// ── Recalculate row ────────────────────────
+function recalcRow(el) {
+    const tr = el.closest('tr');
+    
+    // Helper to get float value (strip dots)
+    const val = name => {
+        const inp = tr.querySelector(`input[name$="[${name}]"]`);
+        if(!inp) return 0;
+        return parseFloat(inp.value.replace(/\./g, '') || 0);
+    };
+    
+    // 1. Calculate actual total
+    const actualTotal = val('actual_jan') + val('actual_feb') + val('actual_mar') + val('actual_apr') + val('actual_mei');
+    tr.querySelector(`input[name$="[actual_total]"]`).value = actualTotal.toLocaleString('id-ID');
+    
+    // 2. Calculate saldo
+    const amt2026 = val('amount_2026');
+    const saldo = amt2026 - actualTotal;
+    
+    const saldoInp = tr.querySelector(`input[name$="[saldo]"]`);
+    saldoInp.value = saldo.toLocaleString('id-ID');
+    
+    // Optional styling for minus saldo
+    if (saldo < 0) {
+        saldoInp.classList.add('text-rose-600');
+        saldoInp.classList.remove('text-slate-500');
+    } else {
+        saldoInp.classList.remove('text-rose-600');
+        saldoInp.classList.add('text-slate-500');
+    }
+
+    // 3. Update overall total
+    recalcTotal();
 }
 
 // ── Add new row ────────────────────────────
@@ -419,18 +483,18 @@ function addRow() {
         <td><input type="text"   name="items[${idx}][cost_center]"  class="cell-input" placeholder="M-201-..."></td>
         <td><input type="text"   name="items[${idx}][aju_ia]"       class="cell-input" placeholder="Office Exp..."></td>
         <td><input type="text"   name="items[${idx}][preventive]"   class="cell-input"></td>
-        <td><input type="number" name="items[${idx}][amount_2025]"  class="cell-input amount" value="0" min="0" step="1" oninput="recalcTotal()"></td>
+        <td><input type="text"   name="items[${idx}][amount_2025]"  class="cell-input amount" value="0" oninput="formatNum(this); recalcRow(this)"></td>
         <td class="bg-indigo-50/50">
-            <input type="number" name="items[${idx}][amount_2026]"  class="cell-input amount !border-indigo-200 font-semibold text-indigo-700" value="0" min="0" step="1" oninput="recalcTotal()">
+            <input type="text" name="items[${idx}][amount_2026]"  class="cell-input amount !border-indigo-200 font-semibold text-indigo-700" value="0" oninput="formatNum(this); recalcRow(this)">
         </td>
-        <td><input type="number" name="items[${idx}][amount_2027]"  class="cell-input amount" value="0" min="0" step="1"></td>
-        <td><input type="number" name="items[${idx}][actual_jan]"   class="cell-input amount" value="0" min="0" step="1"></td>
-        <td><input type="number" name="items[${idx}][actual_feb]"   class="cell-input amount" value="0" min="0" step="1"></td>
-        <td><input type="number" name="items[${idx}][actual_mar]"   class="cell-input amount" value="0" min="0" step="1"></td>
-        <td><input type="number" name="items[${idx}][actual_apr]"   class="cell-input amount" value="0" min="0" step="1"></td>
-        <td><input type="number" name="items[${idx}][actual_mei]"   class="cell-input amount" value="0" min="0" step="1"></td>
-        <td><input type="number" name="items[${idx}][actual_total]" class="cell-input amount" value="0" min="0" step="1"></td>
-        <td><input type="number" name="items[${idx}][saldo]"        class="cell-input amount" value="0" step="1"></td>
+        <td><input type="text" name="items[${idx}][amount_2027]"  class="cell-input amount" value="0" oninput="formatNum(this); recalcRow(this)"></td>
+        <td><input type="text" name="items[${idx}][actual_jan]"   class="cell-input amount" value="0" oninput="formatNum(this); recalcRow(this)"></td>
+        <td><input type="text" name="items[${idx}][actual_feb]"   class="cell-input amount" value="0" oninput="formatNum(this); recalcRow(this)"></td>
+        <td><input type="text" name="items[${idx}][actual_mar]"   class="cell-input amount" value="0" oninput="formatNum(this); recalcRow(this)"></td>
+        <td><input type="text" name="items[${idx}][actual_apr]"   class="cell-input amount" value="0" oninput="formatNum(this); recalcRow(this)"></td>
+        <td><input type="text" name="items[${idx}][actual_mei]"   class="cell-input amount" value="0" oninput="formatNum(this); recalcRow(this)"></td>
+        <td><input type="text" name="items[${idx}][actual_total]" class="cell-input amount bg-slate-50 text-slate-500 font-semibold" value="0" readonly tabindex="-1"></td>
+        <td><input type="text" name="items[${idx}][saldo]"        class="cell-input amount bg-slate-50 text-slate-500 font-semibold" value="0" readonly tabindex="-1"></td>
         <td class="text-center">
             <button type="button" class="del-row-btn w-6 h-6 rounded-md hover:bg-rose-50 flex items-center justify-center" onclick="deleteRow(this)" title="Hapus baris">
                 <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -457,8 +521,14 @@ function deleteRow(btn) {
     setTimeout(() => { tr.remove(); recalcTotal(); }, 150);
 }
 
-// ── Submit loading ─────────────────────────
+// ── Submit loading & strip dots ────────────
 document.getElementById('reviewForm').addEventListener('submit', function() {
+    // Strip dots before submitting so backend validation (numeric) passes
+    const amtInputs = this.querySelectorAll('input.amount');
+    amtInputs.forEach(inp => {
+        inp.value = inp.value.replace(/\./g, '');
+    });
+    
     const btn = document.getElementById('saveBtn');
     btn.disabled = true;
     btn.innerHTML = `
@@ -468,6 +538,15 @@ document.getElementById('reviewForm').addEventListener('submit', function() {
         </svg>
         Menyimpan...
     `;
+});
+
+// ── Event Listener Ubah Tahun Fiskal ───────
+document.getElementById('fiscalYearSelect').addEventListener('change', function(e) {
+    const selectedYear = parseInt(e.target.value, 10);
+    document.getElementById('actualYearLabel').textContent = 'ACTUAL ' + selectedYear;
+    document.getElementById('colPrevYear').textContent = (selectedYear - 1) + ' (Rp)';
+    document.getElementById('colCurrentYear').textContent = selectedYear + ' (Rp)';
+    document.getElementById('colNextYear').textContent = (selectedYear + 1) + ' (Rp)';
 });
 
 // Initial calc
