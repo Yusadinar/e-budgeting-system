@@ -49,7 +49,8 @@ class Department extends Model
     public function currentBudget(): HasOne
     {
         return $this->hasOne(AnnualBudget::class, 'dept_id')
-                    ->where('fiscal_year', now()->year);
+                    ->where('fiscal_year', now()->year)
+                    ->whereNull('cost_center_id');
     }
 
     /**

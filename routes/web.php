@@ -71,6 +71,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ----------------------------------------------------------
     Route::prefix('budget-upload')->name('budget.upload.')->group(function () {
         Route::get('/',         [BudgetUploadController::class, 'index'])->name('index');
+        Route::get('/download-template', [BudgetUploadController::class, 'downloadTemplate'])->name('download-template');
         Route::post('/parse',   [BudgetUploadController::class, 'parse'])->name('parse');
         Route::post('/store',   [BudgetUploadController::class, 'store'])->name('store');
         Route::get('/{budgetUpload}', [BudgetUploadController::class, 'show'])->name('show');
@@ -188,6 +189,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('users', SA\UserController::class)->except(['show']);
             Route::resource('departments', SA\DepartmentController::class)->except(['show']);
             Route::get('budget', [SA\BudgetOverviewController::class, 'index'])->name('budget.index');
+            Route::get('budget/export-master', [SA\BudgetOverviewController::class, 'exportMaster'])->name('budget.export-master');
             Route::get('budget/{department}', [SA\BudgetOverviewController::class, 'show'])->name('budget.show');
             Route::get('audit', [SA\AuditLogController::class, 'index'])->name('audit.index');
 

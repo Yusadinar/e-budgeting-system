@@ -32,6 +32,14 @@
                 <h3 class="text-sm font-semibold text-slate-800">Anggaran per Departemen</h3>
                 <p class="text-xs text-slate-400 mt-0.5">Tahun Fiskal {{ $year }}</p>
             </div>
+            <div>
+                <a href="{{ route('superadmin.budget.export-master', ['year' => $year]) }}" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Download Master Data
+                </a>
+            </div>
         </div>
     </div>
 

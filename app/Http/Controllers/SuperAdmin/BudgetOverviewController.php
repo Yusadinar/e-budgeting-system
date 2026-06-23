@@ -24,7 +24,7 @@ class BudgetOverviewController extends Controller
             ->orderBy('dept_name')
             ->get()
             ->map(function ($dept) {
-                $budget = $dept->annualBudgets->first();
+                $budget = $dept->annualBudgets->where('cost_center_id', null)->first();
                 $deptPlan = $budget ? $budget->total_plan : 0;
                 $deptUsed = $budget ? $budget->total_used : 0;
                 $deptReserved = $budget ? $budget->total_reserved : 0;
@@ -65,7 +65,7 @@ class BudgetOverviewController extends Controller
     {
         $year = $request->input('year', now()->year);
 
-        $deptBudget = $department->annualBudgets()->where('fiscal_year', $year)->first();
+        $deptBudget = $department->annualBudgets()->where('cost_center_id', null)->where('fiscal_year', $year)->first();
         
         $costCenterBudgets = \App\Models\AnnualBudget::whereIn('cost_center_id', $department->costCenters()->pluck('id'))
             ->where('fiscal_year', $year)
@@ -125,5 +125,112 @@ class BudgetOverviewController extends Controller
         return view('superadmin.budget.show', compact(
             'department', 'budget', 'year', 'labels', 'dataRealisasi', 'logs'
         ));
+    }
+
+    public function exportMaster(Request $request)
+    {
+        $year = $request->input('year', now()->year);
+        
+        $departments = Department::orderBy('dept_name')->get();
+        
+        $costCenters = \App\Models\CostCenter::with(['department'])
+            ->orderBy('plant')
+            ->orderBy('expense_type')
+            ->orderBy('cost_center_code')
+            ->get();
+            
+        $budgets = \App\Models\AnnualBudget::where('fiscal_year', $year)->get();
+        
+        $writer = new \App\Services\XlsxWriter();
+        $writer->setSheetName("Master Budget $year");
+        
+        $writer->setColumnWidths([30, 15, 40, 10, 15, 20, 20, 20, 20]);
+        
+        $writer->addRow(['Master Data Budget - Tahun Fiskal ' . $year], 'header');
+        $writer->addMerge("A1:I1");
+        
+        $writer->addRow(array_fill(0, 9, ''));
+        
+        $headers = [
+            'Departemen',
+            'CC Code',
+            'Cost Center Name',
+            'Plant',
+            'Kategori',
+            'Total Pagu',
+            'Realisasi (Terpakai)',
+            'Reserved (Hold)',
+            'Sisa Budget'
+        ];
+        $writer->addRow($headers, 'subheader');
+        
+        $grandTotalPlan = 0;
+        $grandTotalUsed = 0;
+        $grandTotalReserved = 0;
+        $grandTotalRem = 0;
+        
+        foreach ($departments as $dept) {
+            $deptCCs = $costCenters->where('dept_id', $dept->id);
+            $deptBudget = $budgets->where('dept_id', $dept->id)->where('cost_center_id', null)->first();
+            
+            if ($deptBudget && ($deptBudget->total_plan > 0 || $deptBudget->total_used > 0 || $deptBudget->total_reserved > 0)) {
+                $rem = $deptBudget->total_plan - $deptBudget->total_used - $deptBudget->total_reserved;
+                $writer->addRow([
+                    $dept->dept_name,
+                    '-',
+                    'GLOBAL DEPARTEMEN',
+                    '-',
+                    '-',
+                    (float)$deptBudget->total_plan,
+                    (float)$deptBudget->total_used,
+                    (float)$deptBudget->total_reserved,
+                    (float)$rem
+                ], 'data');
+                
+                $grandTotalPlan += $deptBudget->total_plan;
+                $grandTotalUsed += $deptBudget->total_used;
+                $grandTotalReserved += $deptBudget->total_reserved;
+                $grandTotalRem += $rem;
+            }
+            
+            foreach ($deptCCs as $cc) {
+                $ccBudget = $budgets->where('cost_center_id', $cc->id)->first();
+                $plan = $ccBudget ? (float)$ccBudget->total_plan : 0;
+                $used = $ccBudget ? (float)$ccBudget->total_used : 0;
+                $res = $ccBudget ? (float)$ccBudget->total_reserved : 0;
+                
+                $rem = $plan - $used - $res;
+                $writer->addRow([
+                    $dept->dept_name,
+                    $cc->cost_center_code ?? 'N/A',
+                    $cc->cost_center_name ?? 'N/A',
+                    $cc->plant ?? 'N/A',
+                    $cc->expense_type ?? 'N/A',
+                    $plan,
+                    $used,
+                    $res,
+                    $rem
+                ], 'data');
+                
+                $grandTotalPlan += $plan;
+                $grandTotalUsed += $used;
+                $grandTotalReserved += $res;
+                $grandTotalRem += $rem;
+            }
+        }
+        
+        $writer->addRow([
+            'GRAND TOTAL',
+            '',
+            '',
+            '',
+            '',
+            $grandTotalPlan,
+            $grandTotalUsed,
+            $grandTotalReserved,
+            $grandTotalRem
+        ], 'highlight');
+        
+        return $writer->download("Master_Budget_{$year}.xlsx");
     }
 }

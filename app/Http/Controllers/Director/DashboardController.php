@@ -19,12 +19,30 @@ class DashboardController extends Controller
         $year = now()->year;
 
         // ── Statistik Global Perusahaan ──────────────────────
+        // Gunakan GROUP BY per dept_id untuk handle duplikat rows di annual_budgets
         $totalDepartments   = Department::count();
         $totalKaryawan      = User::whereNotIn('role', ['superadmin'])->count();
-        $totalBudgetPlan    = AnnualBudget::where('fiscal_year', $year)->sum('total_plan');
-        $totalBudgetUsed    = AnnualBudget::where('fiscal_year', $year)->sum('total_used');
-        $totalBudgetReserved = AnnualBudget::where('fiscal_year', $year)->sum('total_reserved');
-        $totalBudgetSisa    = $totalBudgetPlan - $totalBudgetUsed - $totalBudgetReserved;
+
+        // SUM per dept (dept-level rows, bukan cost-center rows)
+        $deptTotals = AnnualBudget::where('fiscal_year', $year)
+            ->whereNotNull('dept_id')
+            ->whereNull('cost_center_id')
+            ->selectRaw('dept_id, SUM(total_plan) as plan, SUM(total_used) as used, SUM(total_reserved) as reserved')
+            ->groupBy('dept_id')
+            ->get();
+
+        // SUM cost-center rows digroup per dept
+        $ccTotals = AnnualBudget::where('fiscal_year', $year)
+            ->whereNotNull('cost_center_id')
+            ->join('cost_centers', 'cost_centers.id', '=', 'annual_budgets.cost_center_id')
+            ->selectRaw('cost_centers.dept_id, SUM(annual_budgets.total_plan) as plan, SUM(annual_budgets.total_used) as used, SUM(annual_budgets.total_reserved) as reserved')
+            ->groupBy('cost_centers.dept_id')
+            ->get();
+
+        $totalBudgetPlan     = $deptTotals->sum('plan')     + $ccTotals->sum('plan');
+        $totalBudgetUsed     = $deptTotals->sum('used')     + $ccTotals->sum('used');
+        $totalBudgetReserved = $deptTotals->sum('reserved') + $ccTotals->sum('reserved');
+        $totalBudgetSisa     = $totalBudgetPlan - $totalBudgetUsed - $totalBudgetReserved;
 
         $pctUsed = $totalBudgetPlan > 0
             ? round(($totalBudgetUsed / $totalBudgetPlan) * 100, 1)

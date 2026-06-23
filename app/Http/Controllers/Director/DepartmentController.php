@@ -22,45 +22,62 @@ class DepartmentController extends Controller
     {
         $year = $request->input('year', now()->year);
 
-        $departments = Department::with([
-                'annualBudgets' => fn ($q) => $q->where('fiscal_year', $year),
-                'costCenters.annualBudgets' => fn ($q) => $q->where('fiscal_year', $year)
-            ])
-            ->withCount('users')
+        // Aggregasi budget dept-level per dept_id (SUM untuk handle duplikat rows)
+        $deptAggregates = AnnualBudget::whereNotNull('dept_id')
+            ->where('fiscal_year', $year)
+            ->whereNull('cost_center_id')
+            ->selectRaw('dept_id, SUM(total_plan) as plan, SUM(total_used) as used, SUM(total_reserved) as reserved')
+            ->groupBy('dept_id')
+            ->get()
+            ->keyBy('dept_id')
+            ->map(fn($r) => [
+                'plan'     => (float) $r->plan,
+                'used'     => (float) $r->used,
+                'reserved' => (float) $r->reserved,
+            ]);
+
+        // Aggregasi budget cost-center-level, digroup per dept_id cost center-nya
+        $ccAggregates = AnnualBudget::whereNotNull('cost_center_id')
+            ->where('fiscal_year', $year)
+            ->join('cost_centers', 'cost_centers.id', '=', 'annual_budgets.cost_center_id')
+            ->selectRaw('cost_centers.dept_id, SUM(annual_budgets.total_plan) as plan, SUM(annual_budgets.total_used) as used, SUM(annual_budgets.total_reserved) as reserved')
+            ->groupBy('cost_centers.dept_id')
+            ->get()
+            ->keyBy('dept_id')
+            ->map(fn($r) => [
+                'plan'     => (float) $r->plan,
+                'used'     => (float) $r->used,
+                'reserved' => (float) $r->reserved,
+            ]);
+
+        $departments = Department::withCount('users')
             ->orderBy('dept_name')
             ->get()
-            ->map(function ($dept) use ($year) {
-                // Jumlah pengajuan aktif untuk dept ini
+            ->map(function ($dept) use ($year, $deptAggregates, $ccAggregates) {
+                $dAgg = $deptAggregates[$dept->id] ?? ['plan' => 0, 'used' => 0, 'reserved' => 0];
+                $cAgg = $ccAggregates[$dept->id]   ?? ['plan' => 0, 'used' => 0, 'reserved' => 0];
+
+                $plan = $dAgg['plan'] + $cAgg['plan'];
+                $used = $dAgg['used'] + $cAgg['used'];
+                $rsv  = $dAgg['reserved'] + $cAgg['reserved'];
+                $sisa = $plan - $used - $rsv;
+                $pct  = $plan > 0 ? round(($used / $plan) * 100, 1) : 0;
+
                 $pengajuanAktif = ProposalHarga::whereHas('ppbj.user', fn($q) => $q->where('dept_id', $dept->id))
                     ->whereIn('status', ['Draft', 'In_Review'])
                     ->count();
 
-                $budget = $dept->annualBudgets->first();
-                $deptPlan = $budget ? $budget->total_plan : 0;
-                $deptUsed = $budget ? $budget->total_used : 0;
-                $deptReserved = $budget ? $budget->total_reserved : 0;
-
-                $ccPlan = $dept->costCenters->reduce(fn($c, $cc) => $c + ($cc->annualBudgets->first() ? $cc->annualBudgets->first()->total_plan : 0), 0);
-                $ccUsed = $dept->costCenters->reduce(fn($c, $cc) => $c + ($cc->annualBudgets->first() ? $cc->annualBudgets->first()->total_used : 0), 0);
-                $ccReserved = $dept->costCenters->reduce(fn($c, $cc) => $c + ($cc->annualBudgets->first() ? $cc->annualBudgets->first()->total_reserved : 0), 0);
-
-                $plan = $deptPlan + $ccPlan;
-                $used = $deptUsed + $ccUsed;
-                $rsv = $deptReserved + $ccReserved;
-                $sisa   = $plan - $used - $rsv;
-                $pct    = $plan > 0 ? round(($used / $plan) * 100, 1) : 0;
-
                 return [
-                    'id'             => $dept->id,
-                    'name'           => $dept->dept_name,
-                    'budget_code'    => $dept->budget_code,
-                    'users_count'    => $dept->users_count,
-                    'plan'           => $plan,
-                    'used'           => $used,
-                    'reserved'       => $rsv,
-                    'sisa'           => $sisa,
-                    'utilization'    => $pct,
-                    'pengajuan_aktif'=> $pengajuanAktif,
+                    'id'              => $dept->id,
+                    'name'            => $dept->dept_name,
+                    'budget_code'     => $dept->budget_code,
+                    'users_count'     => $dept->users_count,
+                    'plan'            => $plan,
+                    'used'            => $used,
+                    'reserved'        => $rsv,
+                    'sisa'            => $sisa,
+                    'utilization'     => $pct,
+                    'pengajuan_aktif' => $pengajuanAktif,
                 ];
             });
 
@@ -80,23 +97,31 @@ class DepartmentController extends Controller
     {
         $year = $request->input('year', now()->year);
 
-        $deptBudget = $department->annualBudgets()->where('fiscal_year', $year)->first();
-        
-        $costCenterBudgets = \App\Models\AnnualBudget::whereIn('cost_center_id', $department->costCenters()->pluck('id'))
+        // SUM agregasi dept-level (handle duplikat rows)
+        $deptAgg = AnnualBudget::where('dept_id', $department->id)
             ->where('fiscal_year', $year)
-            ->get();
+            ->whereNull('cost_center_id')
+            ->selectRaw('SUM(total_plan) as plan, SUM(total_used) as used, SUM(total_reserved) as reserved')
+            ->first();
 
-        $totalPlan = ($deptBudget ? $deptBudget->total_plan : 0) + $costCenterBudgets->sum('total_plan');
-        $totalUsed = ($deptBudget ? $deptBudget->total_used : 0) + $costCenterBudgets->sum('total_used');
-        $totalReserved = ($deptBudget ? $deptBudget->total_reserved : 0) + $costCenterBudgets->sum('total_reserved');
+        // SUM agregasi cost-center-level untuk dept ini
+        $ccIds = $department->costCenters()->pluck('id');
+        $ccAgg = AnnualBudget::whereIn('cost_center_id', $ccIds)
+            ->where('fiscal_year', $year)
+            ->selectRaw('SUM(total_plan) as plan, SUM(total_used) as used, SUM(total_reserved) as reserved')
+            ->first();
+
+        $totalPlan     = (float)($deptAgg?->plan ?? 0)     + (float)($ccAgg?->plan ?? 0);
+        $totalUsed     = (float)($deptAgg?->used ?? 0)     + (float)($ccAgg?->used ?? 0);
+        $totalReserved = (float)($deptAgg?->reserved ?? 0) + (float)($ccAgg?->reserved ?? 0);
 
         $budget = null;
-        if ($totalPlan > 0 || $deptBudget || $costCenterBudgets->count() > 0) {
+        if ($totalPlan > 0 || $totalUsed > 0 || $totalReserved > 0) {
             $budget = (object) [
-                'total_plan' => $totalPlan,
-                'total_used' => $totalUsed,
+                'total_plan'     => $totalPlan,
+                'total_used'     => $totalUsed,
                 'total_reserved' => $totalReserved,
-                'remaining' => $totalPlan - $totalUsed - $totalReserved,
+                'remaining'      => $totalPlan - $totalUsed - $totalReserved,
             ];
         }
 

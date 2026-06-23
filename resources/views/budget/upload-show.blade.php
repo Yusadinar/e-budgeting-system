@@ -50,6 +50,13 @@
 
 @section('content')
 
+@php
+    $budgetCols = \App\Http\Controllers\BudgetUploadController::getOlColumns($budgetUpload->outlook_number, $budgetUpload->fiscal_year);
+    $monthlyGroup = collect($budgetCols)->where('type', 'monthly');
+    $ytdGroup = collect($budgetCols)->where('type', 'ytd');
+    $colCount = count($budgetCols);
+@endphp
+
 <div class="max-w-full space-y-5 animate-page">
 
     {{-- ── HEADER ─────────────────────────────────────── --}}
@@ -98,8 +105,8 @@
                     <p>{{ count($budgetUpload->items ?? []) }} item</p>
                 </div>
                 <div class="info-item">
-                    <label>Total Amount 2026</label>
-                    <p class="text-indigo-600">Rp {{ number_format($budgetUpload->total_amount, 0, ',', '.') }}</p>
+                    <label>Total Amount</label>
+                    <p class="text-indigo-600 font-bold">Rp {{ number_format($budgetUpload->total_amount, 0, ',', '.') }}</p>
                 </div>
                 <div class="info-item">
                     <label>Diupload oleh</label>
@@ -133,54 +140,65 @@
     <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
         <div class="p-4 border-b border-slate-100">
             <h3 class="text-sm font-bold text-slate-800">Daftar Item Budget</h3>
-            <p class="text-xs text-slate-400 mt-0.5">Total {{ count($budgetUpload->items ?? []) }} item dari file <em>{{ $budgetUpload->file_name ?? 'Excel' }}</em></p>
+            <p class="text-xs text-slate-400 mt-0.5">Struktur kolom berdasarkan {{ $budgetUpload->outlook_number }} ({{ $colCount }} kolom).</p>
         </div>
 
         <div class="overflow-x-auto">
             <table class="detail-table w-full border-collapse">
                 <thead>
                     <tr>
-                        <th class="text-center">No</th>
-                        <th class="min-w-48">Description</th>
-                        <th>Cost Center</th>
-                        <th>AJU / IA</th>
-                        <th>Preventive</th>
-                        <th class="amount">2025 (Rp)</th>
-                        <th class="amount bg-indigo-50 text-indigo-600">2026 (Rp)</th>
-                        <th class="amount">2027 (Rp)</th>
-                        <th class="amount">Actual Jan</th>
-                        <th class="amount">Actual Feb</th>
-                        <th class="amount">Actual Mar</th>
-                        <th class="amount">Actual Apr</th>
-                        <th class="amount">Actual Mei</th>
-                        <th class="amount">Total Actual</th>
-                        <th class="amount">Saldo</th>
+                        <th rowspan="2" class="text-center">No</th>
+                        <th rowspan="2" class="min-w-48">Description</th>
+                        <th rowspan="2">Cost Center</th>
+                        <th rowspan="2">AJU / IA</th>
+                        <th rowspan="2">Preventive</th>
+                        @php
+                            $groupedCols = collect($budgetCols)->groupBy('year');
+                        @endphp
+                        @foreach($groupedCols as $year => $cols)
+                            @php
+                                $hasMonthly = $cols->where('type', 'monthly')->count() > 0;
+                                $hasYtd = $cols->where('type', 'ytd')->count() > 0;
+                            @endphp
+                            @if($hasMonthly)
+                            <th colspan="{{ $cols->where('type', 'monthly')->count() }}" class="text-center bg-indigo-50 text-indigo-600 border-b border-indigo-100">Budget {{ $year }} (Rp)</th>
+                            @endif
+                            @if($hasYtd)
+                                @foreach($cols->where('type', 'ytd') as $ytdCol)
+                                <th rowspan="2" class="text-center bg-emerald-50 text-emerald-700 align-middle">{{ $year }} YTD (Rp)</th>
+                                @endforeach
+                            @endif
+                        @endforeach
+                        <th rowspan="2" class="amount bg-amber-50 text-amber-700 align-middle">Total Upload</th>
+                    </tr>
+                    <tr>
+                        @foreach($budgetCols as $col)
+                            @if($col['type'] === 'monthly')
+                            <th class="amount">{{ $col['month'] }}</th>
+                            @endif
+                        @endforeach
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($budgetUpload->items ?? [] as $i => $item)
                     <tr>
-                        <td class="text-center text-slate-400">{{ $i + 1 }}</td>
+                        <td class="text-center text-slate-400">{{ $item['no'] ?? ($i + 1) }}</td>
                         <td class="font-medium text-slate-800">{{ $item['description'] ?? '—' }}</td>
                         <td>{{ $item['cost_center'] ?? '—' }}</td>
                         <td>{{ $item['aju_ia'] ?? '—' }}</td>
                         <td>{{ $item['preventive'] ?? '—' }}</td>
-                        <td class="amount">{{ number_format($item['amount_2025'] ?? 0, 0, ',', '.') }}</td>
-                        <td class="amount bg-indigo-50/50 font-semibold text-indigo-700">{{ number_format($item['amount_2026'] ?? 0, 0, ',', '.') }}</td>
-                        <td class="amount">{{ number_format($item['amount_2027'] ?? 0, 0, ',', '.') }}</td>
-                        <td class="amount">{{ number_format($item['actual_jan'] ?? 0, 0, ',', '.') }}</td>
-                        <td class="amount">{{ number_format($item['actual_feb'] ?? 0, 0, ',', '.') }}</td>
-                        <td class="amount">{{ number_format($item['actual_mar'] ?? 0, 0, ',', '.') }}</td>
-                        <td class="amount">{{ number_format($item['actual_apr'] ?? 0, 0, ',', '.') }}</td>
-                        <td class="amount">{{ number_format($item['actual_mei'] ?? 0, 0, ',', '.') }}</td>
-                        <td class="amount">{{ number_format($item['actual_total'] ?? 0, 0, ',', '.') }}</td>
-                        <td class="amount {{ ($item['saldo'] ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-500' }}">
-                            {{ number_format($item['saldo'] ?? 0, 0, ',', '.') }}
+                        @foreach($budgetCols as $col)
+                        <td class="amount {{ $col['type'] === 'ytd' ? 'text-emerald-700 font-semibold bg-emerald-50/30' : '' }}">
+                            {{ number_format($item['amounts'][$col['key']] ?? 0, 0, ',', '.') }}
+                        </td>
+                        @endforeach
+                        <td class="amount bg-amber-50/50 font-bold text-amber-700">
+                            {{ number_format(array_sum($item['amounts'] ?? []), 0, ',', '.') }}
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="15" class="text-center py-8 text-sm text-slate-400">Tidak ada item ditemukan.</td>
+                        <td colspan="{{ 6 + $colCount }}" class="text-center py-8 text-sm text-slate-400">Tidak ada item ditemukan.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -188,21 +206,13 @@
                 <tfoot>
                     <tr class="bg-slate-50">
                         <td colspan="5" class="px-3 py-2 text-xs font-bold text-slate-500 uppercase">TOTAL</td>
-                        <td class="amount px-3 py-2 font-bold text-slate-700">
-                            {{ number_format(collect($budgetUpload->items)->sum('amount_2025'), 0, ',', '.') }}
+                        @foreach($budgetCols as $col)
+                        <td class="amount px-3 py-2 font-bold {{ $col['type'] === 'ytd' ? 'text-emerald-700 bg-emerald-50' : 'text-slate-700' }}">
+                            {{ number_format(collect($budgetUpload->items)->sum(fn($i) => $i['amounts'][$col['key']] ?? 0), 0, ',', '.') }}
                         </td>
-                        <td class="amount px-3 py-2 font-bold text-indigo-700 bg-indigo-50">
-                            {{ number_format(collect($budgetUpload->items)->sum('amount_2026'), 0, ',', '.') }}
-                        </td>
-                        <td class="amount px-3 py-2 font-bold text-slate-700">
-                            {{ number_format(collect($budgetUpload->items)->sum('amount_2027'), 0, ',', '.') }}
-                        </td>
-                        <td colspan="5" class="px-3 py-2"></td>
-                        <td class="amount px-3 py-2 font-bold text-slate-700">
-                            {{ number_format(collect($budgetUpload->items)->sum('actual_total'), 0, ',', '.') }}
-                        </td>
-                        <td class="amount px-3 py-2 font-bold {{ collect($budgetUpload->items)->sum('saldo') >= 0 ? 'text-emerald-600' : 'text-rose-500' }}">
-                            {{ number_format(collect($budgetUpload->items)->sum('saldo'), 0, ',', '.') }}
+                        @endforeach
+                        <td class="amount px-3 py-2 font-bold text-amber-700 bg-amber-100/50">
+                            {{ number_format($budgetUpload->total_amount, 0, ',', '.') }}
                         </td>
                     </tr>
                 </tfoot>
