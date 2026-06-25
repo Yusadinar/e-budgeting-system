@@ -10,8 +10,8 @@ DAFTAR LENGKAP SEMUA AKUN TESTING E-BUDGETING SYSTEM
   Email  : tester.allaccess@establish.dev
   Dept   : Finance Accounting
   Seksi  : All Access Testing
-  Akses  :
-    ✓ Buat PPBJ (sebagai staff/ka_sie)
+  Akses  : (Role Database: fin_dir)
+    ✓ Buat PPBJ (sebagai director all bypass)
     ✓ Approve PPBJ (semua step 1-5)
     ✓ Buat Proposal Harga (PH)
     ✓ Approve PH (semua step 1-6)

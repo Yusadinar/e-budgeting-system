@@ -9,17 +9,17 @@
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
     <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-card animate-page">
         <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Pagu {{ $year }}</span>
-        <p class="text-2xl font-bold text-slate-900 mt-2">@format_rupiah($totalPlan)</p>
+        <p class="text-2xl font-bold text-slate-900 mt-2">{{ \App\Helpers\FormatHelper::rupiah($totalPlan) }}</p>
         <p class="text-xs text-slate-400 mt-1">Seluruh departemen</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-card animate-page-delay-1">
         <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Terpakai</span>
-        <p class="text-2xl font-bold text-violet-600 mt-2">@format_rupiah($totalUsed)</p>
+        <p class="text-2xl font-bold text-violet-600 mt-2">{{ \App\Helpers\FormatHelper::rupiah($totalUsed) }}</p>
         <p class="text-xs text-slate-400 mt-1">{{ $totalPlan > 0 ? round(($totalUsed / $totalPlan) * 100, 1) : 0 }}% dari total pagu</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-card animate-page-delay-2">
         <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Reserved</span>
-        <p class="text-2xl font-bold text-amber-600 mt-2">@format_rupiah($totalReserved)</p>
+        <p class="text-2xl font-bold text-amber-600 mt-2">{{ \App\Helpers\FormatHelper::rupiah($totalReserved) }}</p>
         <p class="text-xs text-slate-400 mt-1">Sedang di-hold untuk pengajuan</p>
     </div>
 </div>
@@ -43,8 +43,8 @@
         </div>
     </div>
 
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm min-w-[800px]">
+    <div class="overflow-x-auto pb-2">
+        <table class="w-full text-sm whitespace-nowrap min-w-[900px]">
             <thead>
                 <tr class="bg-slate-50/60 border-b border-slate-100">
                     <th class="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Departemen</th>
@@ -62,18 +62,18 @@
                 <tr class="hover:bg-violet-50/30 transition-colors">
                     <td class="py-3 px-4 font-medium text-slate-800">{{ $dept['name'] }}</td>
                     <td class="py-3 px-4 font-mono text-xs text-slate-400">{{ $dept['budget_code'] }}</td>
-                    <td class="py-3 px-4 text-right text-slate-700">@format_rupiah($dept['total_plan'])</td>
-                    <td class="py-3 px-4 text-right text-violet-600 font-medium">@format_rupiah($dept['total_used'])</td>
-                    <td class="py-3 px-4 text-right text-amber-600">@format_rupiah($dept['total_reserved'])</td>
+                    <td class="py-3 px-4 text-right text-slate-700">{{ \App\Helpers\FormatHelper::rupiah($dept['total_plan']) }}</td>
+                    <td class="py-3 px-4 text-right text-violet-600 font-medium">{{ \App\Helpers\FormatHelper::rupiah($dept['total_used']) }}</td>
+                    <td class="py-3 px-4 text-right text-amber-600">{{ \App\Helpers\FormatHelper::rupiah($dept['total_reserved']) }}</td>
                     <td class="py-3 px-4 text-right {{ $dept['remaining'] < 0 ? 'text-rose-600' : 'text-emerald-600' }} font-medium">
-                        @format_rupiah($dept['remaining'])
+                        {{ \App\Helpers\FormatHelper::rupiah($dept['remaining']) }}
                     </td>
                     <td class="py-3 px-4">
                         <div class="flex items-center gap-2">
-                            <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                <div class="h-full rounded-full transition-all duration-700
-                                     {{ $dept['utilization'] >= 90 ? 'bg-rose-500' : ($dept['utilization'] >= 80 ? 'bg-amber-500' : 'bg-violet-500') }}"
-                                     style="width: {{ min($dept['utilization'], 100) }}%"></div>
+                            <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden flex">
+                                <div class="h-full bg-rose-500 transition-all duration-700" style="width: {{ $dept['total_plan'] > 0 ? round($dept['total_used'] / $dept['total_plan'] * 100, 1) : 0 }}%"></div>
+                                <div class="h-full bg-amber-400 transition-all duration-700" style="width: {{ $dept['total_plan'] > 0 ? round($dept['total_reserved'] / $dept['total_plan'] * 100, 1) : 0 }}%"></div>
+                                <div class="h-full bg-emerald-400 transition-all duration-700" style="width: {{ $dept['total_plan'] > 0 ? max(0, 100 - round($dept['total_used'] / $dept['total_plan'] * 100, 1) - round($dept['total_reserved'] / $dept['total_plan'] * 100, 1)) : 0 }}%"></div>
                             </div>
                             <span class="text-xs font-semibold w-10 text-right
                                 {{ $dept['utilization'] >= 90 ? 'text-rose-600' : ($dept['utilization'] >= 80 ? 'text-amber-600' : 'text-violet-600') }}">

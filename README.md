@@ -1,4 +1,4 @@
-# E-Budgeting System v1.0.1 📊
+# E-Budgeting System v1.0.2 📊
 
 E-Budgeting System adalah aplikasi berbasis web yang dibangun menggunakan **Laravel** untuk mengelola, melacak, dan menyetujui pengajuan anggaran (budget) secara digital di dalam perusahaan. Sistem ini mempermudah alur birokrasi pengajuan dana melalui tahapan yang terstruktur dan termonitor dengan baik.
 

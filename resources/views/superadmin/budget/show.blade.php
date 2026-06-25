@@ -38,20 +38,20 @@
 <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card animate-page-delay-1">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pagu</span>
-        <p class="text-xl font-bold text-slate-900 mt-1.5">@format_rupiah($budget->total_plan)</p>
+        <p class="text-xl font-bold text-slate-900 mt-1.5">{{ \App\Helpers\FormatHelper::rupiah($budget->total_plan) }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card animate-page-delay-1">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Terpakai</span>
-        <p class="text-xl font-bold text-violet-600 mt-1.5">@format_rupiah($budget->total_used)</p>
+        <p class="text-xl font-bold text-violet-600 mt-1.5">{{ \App\Helpers\FormatHelper::rupiah($budget->total_used) }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card animate-page-delay-2">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Reserved</span>
-        <p class="text-xl font-bold text-amber-600 mt-1.5">@format_rupiah($budget->total_reserved)</p>
+        <p class="text-xl font-bold text-amber-600 mt-1.5">{{ \App\Helpers\FormatHelper::rupiah($budget->total_reserved) }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card animate-page-delay-2">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Sisa</span>
         <p class="text-xl font-bold {{ $budget->remaining < 0 ? 'text-rose-600' : 'text-emerald-600' }} mt-1.5">
-            @format_rupiah($budget->remaining)
+            {{ \App\Helpers\FormatHelper::rupiah($budget->remaining) }}
         </p>
     </div>
 </div>
@@ -108,8 +108,8 @@
         </form>
     </div>
 
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+    <div class="overflow-x-auto pb-2">
+        <table class="w-full text-sm whitespace-nowrap min-w-[800px]">
             <thead>
                 <tr class="bg-slate-50/60 border-b border-slate-100">
                     <th class="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Tanggal</th>
@@ -135,7 +135,7 @@
                         </span>
                     </td>
                     <td class="py-3 px-4 font-mono text-xs text-slate-600 whitespace-nowrap">{{ $log->reference_no }}</td>
-                    <td class="py-3 px-4 text-right font-medium text-slate-700 whitespace-nowrap">Rp {{ number_format($log->amount, 0, ',', '.') }}</td>
+                    <td class="py-3 px-4 text-right font-medium text-slate-700 whitespace-nowrap">{{ \App\Helpers\FormatHelper::rupiah($log->amount) }}</td>
                     <td class="py-3 px-4 text-xs text-slate-500 max-w-sm truncate" title="{{ $log->description }}">{{ $log->description ?: '—' }}</td>
                 </tr>
                 @empty

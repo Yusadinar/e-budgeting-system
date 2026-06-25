@@ -63,9 +63,18 @@ class DepartmentController extends Controller
                 $sisa = $plan - $used - $rsv;
                 $pct  = $plan > 0 ? round(($used / $plan) * 100, 1) : 0;
 
-                $pengajuanAktif = ProposalHarga::whereHas('ppbj.user', fn($q) => $q->where('dept_id', $dept->id))
-                    ->whereIn('status', ['Draft', 'In_Review'])
-                    ->count();
+                $pengajuanAktif = \App\Models\Ppbj::whereHas('user', fn($q) => $q->where('dept_id', $dept->id))
+                    ->where(function ($q) {
+                        $q->whereIn('status', ['Draft', 'In_Review'])
+                          ->orWhere(function ($q2) {
+                              $q2->where('status', 'Approved')
+                                 ->whereDoesntHave('proposalHarga', function ($q3) {
+                                     $q3->whereHas('internalAgreement', function ($q4) {
+                                         $q4->whereIn('status_ia', ['Approved', 'Rejected']);
+                                     })->orWhere('status', 'Rejected');
+                                 });
+                          });
+                    })->count();
 
                 return [
                     'id'              => $dept->id,
@@ -150,28 +159,33 @@ class DepartmentController extends Controller
             ->withQueryString();
 
         // Statistik pengajuan
-        $statAktif = ProposalHarga::whereHas('ppbj.user', fn($q) => $q->where('dept_id', $department->id))
-            ->where(function ($query) {
-                $query->whereIn('status', ['Draft', 'In_Review'])
-                    ->orWhere(function ($q2) {
-                        $q2->where('status', 'Approved')
-                            ->whereDoesntHave('internalAgreement', function ($q3) {
-                                $q3->whereIn('status_ia', ['Approved', 'Rejected']);
-                            });
-                    });
+        $statAktif = \App\Models\Ppbj::whereHas('user', fn($q) => $q->where('dept_id', $department->id))
+            ->where(function ($q) {
+                $q->whereIn('status', ['Draft', 'In_Review'])
+                  ->orWhere(function ($q2) {
+                      $q2->where('status', 'Approved')
+                         ->whereDoesntHave('proposalHarga', function ($q3) {
+                             $q3->whereHas('internalAgreement', function ($q4) {
+                                 $q4->whereIn('status_ia', ['Approved', 'Rejected']);
+                             })->orWhere('status', 'Rejected');
+                         });
+                  });
             })->count();
 
-        $statApproved = ProposalHarga::whereHas('ppbj.user', fn($q) => $q->where('dept_id', $department->id))
-            ->whereHas('internalAgreement', function ($query) {
-                $query->where('status_ia', 'Approved');
+        $statApproved = \App\Models\Ppbj::whereHas('user', fn($q) => $q->where('dept_id', $department->id))
+            ->whereHas('proposalHarga.internalAgreement', function ($q) {
+                $q->where('status_ia', 'Approved');
             })->count();
 
-        $statRejected = ProposalHarga::whereHas('ppbj.user', fn($q) => $q->where('dept_id', $department->id))
-            ->where(function ($query) {
-                $query->where('status', 'Rejected')
-                    ->orWhereHas('internalAgreement', function ($q2) {
-                        $q2->where('status_ia', 'Rejected');
-                    });
+        $statRejected = \App\Models\Ppbj::whereHas('user', fn($q) => $q->where('dept_id', $department->id))
+            ->where(function ($q) {
+                $q->where('status', 'Rejected')
+                  ->orWhereHas('proposalHarga', function ($q2) {
+                      $q2->where('status', 'Rejected')
+                         ->orWhereHas('internalAgreement', function ($q3) {
+                             $q3->where('status_ia', 'Rejected');
+                         });
+                  });
             })->count();
 
         // Anggota departemen
@@ -207,6 +221,7 @@ class DepartmentController extends Controller
                     'name' => $cc->cost_center_name,
                     'plan' => $plan,
                     'used' => $used,
+                    'reserved' => $reserved,
                     'sisa' => $sisa,
                     'utilization' => $utilization,
                 ];

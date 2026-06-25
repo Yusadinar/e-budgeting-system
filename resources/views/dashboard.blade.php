@@ -58,8 +58,8 @@
 
     <x-stat-card
         title="Sisa Pagu"
-        value="@format_rupiah($sisaPagu)"
-        subtitle="dari @format_rupiah($totalPlan)"
+        value="{{ \App\Helpers\FormatHelper::rupiah($sisaPagu) }}"
+        subtitle="dari {{ \App\Helpers\FormatHelper::rupiah($totalPlan) }}"
         color="emerald"
         delay="animate-page">
         {{-- Icon slot --}}
@@ -70,7 +70,7 @@
 
     <x-stat-card
         title="Pengajuan Berjalan"
-        value="@format_rupiah($totalPengajuanBerjalan)"
+        value="{{ \App\Helpers\FormatHelper::rupiah($totalPengajuanBerjalan) }}"
         subtitle="Sedang dalam proses review"
         color="amber"
         delay="animate-page-delay-1">
@@ -81,7 +81,7 @@
 
     <x-stat-card
         title="Realisasi Selesai"
-        value="@format_rupiah($totalPengajuanSelesai)"
+        value="{{ \App\Helpers\FormatHelper::rupiah($totalPengajuanSelesai) }}"
         subtitle="IA sudah Approved & Closed"
         color="indigo"
         delay="animate-page-delay-2">

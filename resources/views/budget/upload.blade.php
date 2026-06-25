@@ -129,7 +129,7 @@
             <div class="mt-4 flex flex-wrap gap-2">
                 {{-- Download Template FOH --}}
                 <a href="{{ route('budget.upload.download-template', ['type' => 'FOH']) }}"
-                       class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm">
+                       class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm w-full sm:w-auto">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
                         </svg>
@@ -138,14 +138,15 @@
 
                     {{-- Download Template OPEX --}}
                     <a href="{{ route('budget.upload.download-template', ['type' => 'OPEX']) }}"
-                       class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm">
+                       class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm w-full sm:w-auto">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
                         </svg>
                         Template OPEX
+                    </a>
                     {{-- Download Template Dummy (Untuk Testing) --}}
                     <a href="{{ route('budget.upload.download-template', ['type' => 'FOH', 'dummy' => '1']) }}"
-                       class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm ml-auto">
+                       class="inline-flex items-center justify-center sm:justify-start gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm w-full sm:w-auto sm:ml-auto">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3 12l3-3m0 0l3 3m-3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
                         </svg>
@@ -193,8 +194,8 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-xs text-slate-600">
+                <div class="overflow-x-auto pb-2">
+                    <table class="w-full text-xs text-slate-600 whitespace-nowrap min-w-[500px]">
                         <thead>
                             <tr class="border-b border-slate-200">
                                 <th class="pb-1.5 text-left font-semibold text-slate-500">Outlook</th>
@@ -368,6 +369,7 @@
             <div class="h-2 bg-slate-200 rounded-full overflow-hidden flex">
                 <div class="h-full bg-rose-500 transition-all" style="width: {{ $totalPlan > 0 ? round($totalUsed / $totalPlan * 100, 1) : 0 }}%"></div>
                 <div class="h-full bg-amber-400 transition-all" style="width: {{ $totalPlan > 0 ? round($totalReserved / $totalPlan * 100, 1) : 0 }}%"></div>
+                <div class="h-full bg-emerald-400 transition-all" style="width: {{ $totalPlan > 0 ? max(0, 100 - round($totalUsed / $totalPlan * 100, 1) - round($totalReserved / $totalPlan * 100, 1)) : 0 }}%"></div>
             </div>
             <div class="flex items-center gap-4 mt-1.5 text-[10px] text-slate-400">
                 <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>Terpakai: Rp {{ number_format($totalUsed, 0, ',', '.') }}</span>
@@ -420,6 +422,7 @@
                     <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden flex mb-2">
                         <div class="h-full bg-rose-400 transition-all" style="width: {{ $plan > 0 ? round($used / $plan * 100, 1) : 0 }}%"></div>
                         <div class="h-full bg-amber-300 transition-all" style="width: {{ $plan > 0 ? round($reserved / $plan * 100, 1) : 0 }}%"></div>
+                        <div class="h-full bg-emerald-400 transition-all" style="width: {{ $plan > 0 ? max(0, 100 - round($used / $plan * 100, 1) - round($reserved / $plan * 100, 1)) : 0 }}%"></div>
                     </div>
                     <div class="grid grid-cols-3 gap-2 text-center">
                         <div>

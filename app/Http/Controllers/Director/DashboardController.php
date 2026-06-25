@@ -48,10 +48,31 @@ class DashboardController extends Controller
             ? round(($totalBudgetUsed / $totalBudgetPlan) * 100, 1)
             : 0;
 
-        // ── Status Pengajuan Seluruh Perusahaan ──────────────
-        $totalPengajuanAktif    = ProposalHarga::whereIn('status', ['Draft', 'In_Review'])->count();
-        $totalPengajuanApproved = ProposalHarga::where('status', 'Approved')->count();
-        $totalPengajuanRejected = ProposalHarga::where('status', 'Rejected')->count();
+        $totalPengajuanAktif = \App\Models\Ppbj::where(function ($q) {
+            $q->whereIn('status', ['Draft', 'In_Review'])
+              ->orWhere(function ($q2) {
+                  $q2->where('status', 'Approved')
+                     ->whereDoesntHave('proposalHarga', function ($q3) {
+                         $q3->whereHas('internalAgreement', function ($q4) {
+                             $q4->whereIn('status_ia', ['Approved', 'Rejected']);
+                         })->orWhere('status', 'Rejected');
+                     });
+              });
+        })->count();
+
+        $totalPengajuanApproved = \App\Models\Ppbj::whereHas('proposalHarga.internalAgreement', function ($q) {
+            $q->where('status_ia', 'Approved');
+        })->count();
+
+        $totalPengajuanRejected = \App\Models\Ppbj::where(function ($q) {
+            $q->where('status', 'Rejected')
+              ->orWhereHas('proposalHarga', function ($q2) {
+                  $q2->where('status', 'Rejected')
+                     ->orWhereHas('internalAgreement', function ($q3) {
+                         $q3->where('status_ia', 'Rejected');
+                     });
+              });
+        })->count();
 
         // ── Tugas yang menunggu approval direktur (PPBJ, PH, IA) ──────
         $pendingApprovalDir = $user->getPendingActionPpbjIds()->count();

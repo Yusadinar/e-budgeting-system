@@ -59,8 +59,8 @@
                 </svg>
             </span>
         </div>
-        <p class="text-2xl font-bold text-slate-900 animate-count">@format_rupiah($totalBudgetPlan)</p>
-        <p class="text-xs text-slate-400 mt-1">Terpakai: @format_rupiah($totalBudgetUsed)</p>
+        <p class="text-2xl font-bold text-slate-900 animate-count">{{ \App\Helpers\FormatHelper::rupiah($totalBudgetPlan) }}</p>
+        <p class="text-xs text-slate-400 mt-1">Terpakai: {{ \App\Helpers\FormatHelper::rupiah($totalBudgetUsed) }}</p>
     </div>
 
     {{-- Card: Pengajuan Aktif --}}

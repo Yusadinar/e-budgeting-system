@@ -56,12 +56,12 @@
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5 animate-page-delay-1">
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pagu Anggaran</span>
-        <p class="text-xl font-bold text-slate-900 mt-1.5 leading-tight">@format_rupiah($budget->total_plan)</p>
+        <p class="text-xl font-bold text-slate-900 mt-1.5 leading-tight">{{ \App\Helpers\FormatHelper::rupiah($budget->total_plan) }}</p>
         <p class="text-[11px] text-slate-400 mt-0.5">FY{{ $year }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Terpakai</span>
-        <p class="text-xl font-bold text-indigo-600 mt-1.5 leading-tight">@format_rupiah($budget->total_used)</p>
+        <p class="text-xl font-bold text-indigo-600 mt-1.5 leading-tight">{{ \App\Helpers\FormatHelper::rupiah($budget->total_used) }}</p>
         <div class="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <div class="h-full rounded-full {{ $barColor }}" style="width: {{ min($pct, 100) }}%"></div>
         </div>
@@ -69,13 +69,13 @@
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Reserved</span>
-        <p class="text-xl font-bold text-amber-600 mt-1.5 leading-tight">@format_rupiah($budget->total_reserved)</p>
+        <p class="text-xl font-bold text-amber-600 mt-1.5 leading-tight">{{ \App\Helpers\FormatHelper::rupiah($budget->total_reserved) }}</p>
         <p class="text-[11px] text-slate-400 mt-0.5">Pengajuan in-review</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Sisa Pagu</span>
         <p class="text-xl font-bold {{ $budget->remaining < 0 ? 'text-rose-600' : 'text-emerald-600' }} mt-1.5 leading-tight">
-            @format_rupiah($budget->remaining)
+            {{ \App\Helpers\FormatHelper::rupiah($budget->remaining) }}
         </p>
         <p class="text-[11px] text-slate-400 mt-0.5">{{ $budget->remaining < 0 ? '⚠ Melebihi Pagu' : 'Tersisa' }}</p>
     </div>
@@ -186,8 +186,8 @@
             <span class="text-xs bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded-full">{{ $statAktif }} aktif</span>
             @endif
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+        <div class="overflow-x-auto pb-2">
+            <table class="w-full text-sm whitespace-nowrap min-w-[800px]">
                 <thead>
                     <tr class="bg-slate-50/60 border-b border-slate-100">
                         <th class="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Subject</th>
@@ -265,8 +265,8 @@
         <h3 class="text-sm font-semibold text-slate-800">Detail Anggaran per Cost Center</h3>
         <p class="text-xs text-slate-400 mt-0.5">Monitoring serapan budget hingga level operasional terkecil (FY{{ $year }})</p>
     </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+    <div class="overflow-x-auto pb-2">
+        <table class="w-full text-sm whitespace-nowrap min-w-[700px]">
             <thead>
                 <tr class="bg-slate-50/60 border-b border-slate-100">
                     <th class="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Cost Center</th>
@@ -283,15 +283,15 @@
                         <div class="font-medium text-slate-800">{{ $cc['name'] }}</div>
                         <div class="text-[10px] text-slate-400 font-mono mt-0.5">{{ $cc['code'] ?: 'N/A' }}</div>
                     </td>
-                    <td class="py-3 px-4 text-right text-slate-700">Rp {{ number_format($cc['plan'] / 1000000, 0, ',', '.') }} Jt</td>
-                    <td class="py-3 px-4 text-right text-indigo-600 font-medium">Rp {{ number_format($cc['used'] / 1000000, 0, ',', '.') }} Jt</td>
-                    <td class="py-3 px-4 text-right {{ $cc['sisa'] < 0 ? 'text-rose-600' : 'text-emerald-600' }} font-medium">Rp {{ number_format($cc['sisa'] / 1000000, 0, ',', '.') }} Jt</td>
+                    <td class="py-3 px-4 text-right text-slate-700">{{ \App\Helpers\FormatHelper::rupiah($cc['plan']) }}</td>
+                    <td class="py-3 px-4 text-right text-indigo-600 font-medium">{{ \App\Helpers\FormatHelper::rupiah($cc['used']) }}</td>
+                    <td class="py-3 px-4 text-right {{ $cc['sisa'] < 0 ? 'text-rose-600' : 'text-emerald-600' }} font-medium">{{ \App\Helpers\FormatHelper::rupiah($cc['sisa']) }}</td>
                     <td class="py-3 px-4">
                         <div class="flex items-center gap-2">
-                            <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                <div class="h-full rounded-full transition-all duration-700
-                                     {{ $cc['utilization'] >= 90 ? 'bg-rose-500' : ($cc['utilization'] >= 75 ? 'bg-amber-500' : 'bg-indigo-500') }}"
-                                     style="width: {{ min($cc['utilization'], 100) }}%"></div>
+                            <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden flex">
+                                <div class="h-full bg-rose-500 transition-all duration-700" style="width: {{ $cc['plan'] > 0 ? round($cc['used'] / $cc['plan'] * 100, 1) : 0 }}%"></div>
+                                <div class="h-full bg-amber-400 transition-all duration-700" style="width: {{ $cc['plan'] > 0 ? round($cc['reserved'] / $cc['plan'] * 100, 1) : 0 }}%"></div>
+                                <div class="h-full bg-emerald-400 transition-all duration-700" style="width: {{ $cc['plan'] > 0 ? max(0, 100 - round($cc['used'] / $cc['plan'] * 100, 1) - round($cc['reserved'] / $cc['plan'] * 100, 1)) : 0 }}%"></div>
                             </div>
                             <span class="text-[10px] font-semibold w-8 text-right
                                 {{ $cc['utilization'] >= 90 ? 'text-rose-600' : ($cc['utilization'] >= 75 ? 'text-amber-600' : 'text-indigo-600') }}">
@@ -338,8 +338,8 @@
             </div>
         </form>
     </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+    <div class="overflow-x-auto pb-2">
+        <table class="w-full text-sm whitespace-nowrap min-w-[800px]">
             <thead>
                 <tr class="bg-slate-50/60 border-b border-slate-100">
                     <th class="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Tanggal</th>
@@ -365,7 +365,7 @@
                         </span>
                     </td>
                     <td class="py-3 px-4 font-mono text-xs text-slate-600 whitespace-nowrap">{{ $log->reference_no }}</td>
-                    <td class="py-3 px-4 text-right font-medium text-slate-700 whitespace-nowrap">Rp {{ number_format($log->amount, 0, ',', '.') }}</td>
+                    <td class="py-3 px-4 text-right font-medium text-slate-700 whitespace-nowrap">{{ \App\Helpers\FormatHelper::rupiah($log->amount) }}</td>
                     <td class="py-3 px-4 text-xs text-slate-500 max-w-sm truncate" title="{{ $log->description }}">{{ $log->description ?: '—' }}</td>
                 </tr>
                 @empty

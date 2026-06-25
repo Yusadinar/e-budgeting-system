@@ -68,8 +68,8 @@
 
 {{-- Table --}}
 <div class="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden animate-page-delay-2">
-    <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+    <div class="overflow-x-auto pb-2">
+        <table class="w-full text-left border-collapse whitespace-nowrap min-w-[1000px]">
             <thead>
                 <tr class="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider">
                     <th class="p-3 font-semibold rounded-tl-lg">#</th>

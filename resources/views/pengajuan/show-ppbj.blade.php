@@ -106,7 +106,7 @@
             <div class="info-grid mb-2">
                 <div class="section-head">A. Data Umum</div>
                 <div class="info-cell"><div class="info-label">Department/Section</div><div class="info-value">{{ $ppbj->department_section }}</div></div>
-                <div class="info-cell"><div class="info-label">IA No.</div><div class="info-value">&nbsp;</div></div>
+                <div class="info-cell"><div class="info-label">IA No.</div><div class="info-value">{!! $ppbj->latestProposalHarga?->internalAgreement?->ia_number ?? '&nbsp;' !!}</div></div>
                 <div class="info-cell"><div class="info-label">Subject</div><div class="info-value">{{ $ppbj->subject }}</div></div>
                 <div class="info-cell"><div class="info-label">IO/FR No.</div><div class="info-value">&nbsp;</div></div>
                 <div class="info-cell"><div class="info-label">Nama Barang/Jasa</div><div class="info-value">{{ $ppbj->nama_barang_jasa }}</div></div>

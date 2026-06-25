@@ -21,7 +21,13 @@ return new class extends Migration
         });
 
         // Step 3: Ubah dept_id menjadi nullable
-        DB::statement('ALTER TABLE `annual_budgets` MODIFY `dept_id` BIGINT UNSIGNED NULL');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE `annual_budgets` MODIFY `dept_id` BIGINT UNSIGNED NULL');
+        } else {
+            Schema::table('annual_budgets', function (Blueprint $table) {
+                $table->unsignedBigInteger('dept_id')->nullable()->change();
+            });
+        }
 
         // Step 4: Pasang kembali foreign key
         Schema::table('annual_budgets', function (Blueprint $table) {
@@ -37,7 +43,13 @@ return new class extends Migration
             $table->dropForeign(['dept_id']);
         });
 
-        DB::statement('ALTER TABLE `annual_budgets` MODIFY `dept_id` BIGINT UNSIGNED NOT NULL');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE `annual_budgets` MODIFY `dept_id` BIGINT UNSIGNED NOT NULL');
+        } else {
+            Schema::table('annual_budgets', function (Blueprint $table) {
+                $table->unsignedBigInteger('dept_id')->nullable(false)->change();
+            });
+        }
 
         Schema::table('annual_budgets', function (Blueprint $table) {
             $table->foreign('dept_id')

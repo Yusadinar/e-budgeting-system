@@ -21,7 +21,9 @@ return new class extends Migration
 
         // 2. Ubah enum role pada users table
         // Harus menggunakan raw SQL karena ENUM sulit diubah dengan Blueprint standard di MySQL
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('staff', 'ka_sie', 'ka_dept', 'ka_div', 'accounting', 'superadmin', 'ka_dept_acc', 'ka_div_acc', 'fin_dir', 'man_dir', 'pres_dir') DEFAULT 'staff'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('staff', 'ka_sie', 'ka_dept', 'ka_div', 'accounting', 'superadmin', 'ka_dept_acc', 'ka_div_acc', 'fin_dir', 'man_dir', 'pres_dir') DEFAULT 'staff'");
+        }
     }
 
     public function down(): void
@@ -31,6 +33,8 @@ return new class extends Migration
         });
 
         // Rollback ENUM
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('staff', 'ka_dept', 'ka_div', 'accounting', 'superadmin') DEFAULT 'staff'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('staff', 'ka_dept', 'ka_div', 'accounting', 'superadmin') DEFAULT 'staff'");
+        }
     }
 };

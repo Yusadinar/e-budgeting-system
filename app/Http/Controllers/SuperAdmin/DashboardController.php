@@ -22,7 +22,17 @@ class DashboardController extends Controller
         $totalDepartments = Department::count();
         $totalBudgetPlan  = AnnualBudget::where('fiscal_year', $year)->sum('total_plan');
         $totalBudgetUsed  = AnnualBudget::where('fiscal_year', $year)->sum('total_used');
-        $totalPengajuanAktif = ProposalHarga::whereIn('status', ['Draft', 'In_Review'])->count();
+        $totalPengajuanAktif = \App\Models\Ppbj::where(function ($q) {
+            $q->whereIn('status', ['Draft', 'In_Review'])
+              ->orWhere(function ($q2) {
+                  $q2->where('status', 'Approved')
+                     ->whereDoesntHave('proposalHarga', function ($q3) {
+                         $q3->whereHas('internalAgreement', function ($q4) {
+                             $q4->whereIn('status_ia', ['Approved', 'Rejected']);
+                         })->orWhere('status', 'Rejected');
+                     });
+              });
+        })->count();
 
         // ── Budget per Departemen (untuk bar chart) ──────────
         $deptBudgets = Department::with(['currentBudget', 'costCenters.currentBudget'])
