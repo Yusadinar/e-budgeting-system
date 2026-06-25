@@ -24,7 +24,7 @@ class BudgetUploadController extends Controller
 
     public function index(): View
     {
-        abort_if(! Auth::user()->isKaDept(), 403, 'Hanya Kepala Departemen yang bisa mengakses fitur ini.');
+        abort_if(! Auth::user()->isKaDept() && ! Auth::user()->isTester(), 403, 'Hanya Kepala Departemen yang bisa mengakses fitur ini.');
 
         $user     = Auth::user();
         $dept     = $user->department;
@@ -165,7 +165,7 @@ class BudgetUploadController extends Controller
 
     public function downloadTemplate(Request $request)
     {
-        abort_if(! Auth::user()->isKaDept(), 403);
+        abort_if(! Auth::user()->isKaDept() && ! Auth::user()->isTester(), 403);
 
         $user = Auth::user();
         $dept = $user->department;
@@ -349,7 +349,7 @@ class BudgetUploadController extends Controller
 
     public function parse(Request $request): View|RedirectResponse
     {
-        abort_if(! Auth::user()->isKaDept(), 403);
+        abort_if(! Auth::user()->isKaDept() && ! Auth::user()->isTester(), 403);
 
         $request->validate([
             'excel_file' => ['required', 'file', 'mimes:xlsx,xls', 'max:5120'],
@@ -387,7 +387,7 @@ class BudgetUploadController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        abort_if(! Auth::user()->isKaDept(), 403);
+        abort_if(! Auth::user()->isKaDept() && ! Auth::user()->isTester(), 403);
 
         $validated = $request->validate([
             'outlook_number' => ['required', 'string', 'max:20'],
@@ -506,7 +506,7 @@ class BudgetUploadController extends Controller
 
     public function show(BudgetUpload $budgetUpload): View
     {
-        abort_if(! Auth::user()->isKaDept(), 403);
+        abort_if(! Auth::user()->isKaDept() && ! Auth::user()->isTester(), 403);
         abort_if($budgetUpload->dept_id !== Auth::user()->department?->id, 403);
 
         return view('budget.upload-show', compact('budgetUpload'));

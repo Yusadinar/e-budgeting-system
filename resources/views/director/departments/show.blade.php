@@ -56,12 +56,12 @@
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5 animate-page-delay-1">
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pagu Anggaran</span>
-        <p class="text-xl font-bold text-slate-900 mt-1.5 leading-tight">Rp {{ number_format($budget->total_plan / 1_000_000, 0, ',', '.') }} Jt</p>
+        <p class="text-xl font-bold text-slate-900 mt-1.5 leading-tight">@format_rupiah($budget->total_plan)</p>
         <p class="text-[11px] text-slate-400 mt-0.5">FY{{ $year }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Terpakai</span>
-        <p class="text-xl font-bold text-indigo-600 mt-1.5 leading-tight">Rp {{ number_format($budget->total_used / 1_000_000, 0, ',', '.') }} Jt</p>
+        <p class="text-xl font-bold text-indigo-600 mt-1.5 leading-tight">@format_rupiah($budget->total_used)</p>
         <div class="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <div class="h-full rounded-full {{ $barColor }}" style="width: {{ min($pct, 100) }}%"></div>
         </div>
@@ -69,13 +69,13 @@
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Reserved</span>
-        <p class="text-xl font-bold text-amber-600 mt-1.5 leading-tight">Rp {{ number_format($budget->total_reserved / 1_000_000, 0, ',', '.') }} Jt</p>
+        <p class="text-xl font-bold text-amber-600 mt-1.5 leading-tight">@format_rupiah($budget->total_reserved)</p>
         <p class="text-[11px] text-slate-400 mt-0.5">Pengajuan in-review</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Sisa Pagu</span>
         <p class="text-xl font-bold {{ $budget->remaining < 0 ? 'text-rose-600' : 'text-emerald-600' }} mt-1.5 leading-tight">
-            Rp {{ number_format($budget->remaining / 1_000_000, 0, ',', '.') }} Jt
+            @format_rupiah($budget->remaining)
         </p>
         <p class="text-[11px] text-slate-400 mt-0.5">{{ $budget->remaining < 0 ? '⚠ Melebihi Pagu' : 'Tersisa' }}</p>
     </div>

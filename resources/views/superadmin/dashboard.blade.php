@@ -59,8 +59,8 @@
                 </svg>
             </span>
         </div>
-        <p class="text-2xl font-bold text-slate-900 animate-count">Rp {{ number_format($totalBudgetPlan, 0, ',', '.') }}</p>
-        <p class="text-xs text-slate-400 mt-1">Terpakai: Rp {{ number_format($totalBudgetUsed, 0, ',', '.') }}</p>
+        <p class="text-2xl font-bold text-slate-900 animate-count">@format_rupiah($totalBudgetPlan)</p>
+        <p class="text-xs text-slate-400 mt-1">Terpakai: @format_rupiah($totalBudgetUsed)</p>
     </div>
 
     {{-- Card: Pengajuan Aktif --}}

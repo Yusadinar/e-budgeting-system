@@ -45,6 +45,11 @@ class ApprovalController extends Controller
             default => false,
         };
 
+        // Tester all-access: bisa approve semua step PPBJ
+        if ($user->isTester()) {
+            $isValid = true;
+        }
+
         abort_if(!$isValid, 422, 'Bukan giliran Anda untuk menyetujui PPBJ ini.');
 
         // Tentukan batas akhir (max step) berdasarkan nominal
@@ -138,6 +143,11 @@ class ApprovalController extends Controller
             6 => $user->username === 'yoga.dina',
             default => false,
         };
+
+        // Tester all-access: bisa approve semua step PH
+        if ($user->isTester()) {
+            $isValid = true;
+        }
 
         // For simplicity, we just check the level since we might not have all exact departments seeded correctly.
         abort_if(!$isValid, 422, 'Bukan giliran Anda untuk menyetujui PH ini atau role tidak sesuai.');
@@ -266,6 +276,11 @@ class ApprovalController extends Controller
 
         // Fallback jika user membuat IA dan dia sendiri adalah Ka. Sie (Self-approve step 1)
         if ($currentStep === 1 && $submitter->id === $user->id && $user->isKaSie()) {
+            $isValid = true;
+        }
+
+        // Tester all-access: bisa approve semua step IA
+        if ($user->isTester()) {
             $isValid = true;
         }
 

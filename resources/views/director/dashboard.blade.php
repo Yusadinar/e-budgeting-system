@@ -56,7 +56,7 @@
                 <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75"/></svg>
             </span>
         </div>
-        <p class="text-lg font-bold text-slate-900 leading-tight">Rp {{ number_format($totalBudgetPlan / 1_000_000_000, 1, ',', '.') }} M</p>
+        <p class="text-lg font-bold text-slate-900 leading-tight">@format_rupiah($totalBudgetPlan)</p>
         <p class="text-[11px] text-slate-400 mt-0.5">{{ $totalDepartments }} departemen aktif</p>
     </div>
 
@@ -68,7 +68,7 @@
                 <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6L9 12.75l4.286-4.286a11.948 11.948 0 014.306 6.43l.776 2.898m0 0 3.182-5.511m-3.182 5.511-5.511-3.182"/></svg>
             </span>
         </div>
-        <p class="text-lg font-bold text-slate-900 leading-tight">Rp {{ number_format($totalBudgetUsed / 1_000_000_000, 1, ',', '.') }} M</p>
+        <p class="text-lg font-bold text-slate-900 leading-tight">@format_rupiah($totalBudgetUsed)</p>
         <div class="flex items-center gap-1.5 mt-1">
             <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                 <div class="h-full rounded-full {{ $pctUsed >= 85 ? 'bg-rose-500' : ($pctUsed >= 65 ? 'bg-amber-500' : 'bg-emerald-500') }}" style="width: {{ min($pctUsed, 100) }}%"></div>
@@ -85,8 +85,8 @@
                 <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </span>
         </div>
-        <p class="text-lg font-bold text-slate-900 leading-tight">Rp {{ number_format($totalBudgetSisa / 1_000_000_000, 1, ',', '.') }} M</p>
-        <p class="text-[11px] text-slate-400 mt-0.5">Reserve: Rp {{ number_format($totalBudgetReserved / 1_000_000, 0, ',', '.') }} Jt</p>
+        <p class="text-lg font-bold text-slate-900 leading-tight">@format_rupiah($totalBudgetSisa)</p>
+        <p class="text-[11px] text-slate-400 mt-0.5">Reserve: @format_rupiah($totalBudgetReserved)</p>
     </div>
 
     {{-- Pengajuan Aktif --}}

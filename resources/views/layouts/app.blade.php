@@ -150,7 +150,7 @@
                 <p class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Menu Utama</p>
 
                 {{-- Dashboard --}}
-                <a href="{{ Auth::user()->isDirector() ? route('director.dashboard') : route('dashboard') }}"
+                <a href="{{ (Auth::user()->isDirector() || Auth::user()->isTester()) ? route('director.dashboard') : route('dashboard') }}"
                    class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-150
                           {{ request()->routeIs('dashboard') || request()->routeIs('director.dashboard') ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-400 hover:text-white hover:bg-white/[0.07]' }}">
                     <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -159,7 +159,7 @@
                     Dashboard
                 </a>
 
-                @if(Auth::user()->isDirector())
+                @if(Auth::user()->isDirector() || Auth::user()->isTester())
                 {{-- ── DIRECTOR MENU ── --}}
                 <p class="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Monitoring</p>
 
@@ -181,8 +181,14 @@
                     Tracking &amp; Approval
                 </a>
 
-                @else
+                @endif
+
+                @if(!Auth::user()->isDirector() || Auth::user()->isTester())
                 {{-- ── STAFF / KA. DEPT MENU ── --}}
+                @if(Auth::user()->isTester())
+                <p class="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Pengajuan</p>
+                @endif
+
                 <a href="{{ route('pengajuan.index') }}"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
                           {{ request()->routeIs('pengajuan.*') ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-400 hover:text-white hover:bg-white/[0.07]' }}">
@@ -192,6 +198,7 @@
                     Menu Pengajuan
                 </a>
 
+                @if(!Auth::user()->isTester())
                 <a href="{{ route('tracking.index') }}"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
                           {{ request()->routeIs('tracking.*') ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-400 hover:text-white hover:bg-white/[0.07]' }}">
@@ -200,8 +207,9 @@
                     </svg>
                     Tracking Approval
                 </a>
+                @endif
 
-                @if(Auth::user()->isKaDept())
+                @if(Auth::user()->isKaDept() || Auth::user()->isTester())
                 <a href="{{ route('budget.upload.index') }}"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
                           {{ request()->routeIs('budget.upload.*') ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-400 hover:text-white hover:bg-white/[0.07]' }}">
@@ -209,6 +217,29 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
                     </svg>
                     Upload Budget Excel
+                </a>
+                @endif
+
+                @if(Auth::user()->isTester())
+                {{-- ── SUPERADMIN MENU untuk Tester ── --}}
+                <p class="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Admin Panel</p>
+
+                <a href="{{ route('superadmin.dashboard') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+                          {{ request()->routeIs('superadmin.dashboard') ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-400 hover:text-white hover:bg-white/[0.07]' }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/>
+                    </svg>
+                    Superadmin Panel
+                </a>
+
+                <a href="{{ route('superadmin.budget.export-master') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+                          text-slate-400 hover:text-white hover:bg-white/[0.07]">
+                    <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                    </svg>
+                    Download Master Data
                 </a>
                 @endif
                 @endif

@@ -38,20 +38,20 @@
 <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card animate-page-delay-1">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pagu</span>
-        <p class="text-xl font-bold text-slate-900 mt-1.5">Rp {{ number_format($budget->total_plan, 0, ',', '.') }}</p>
+        <p class="text-xl font-bold text-slate-900 mt-1.5">@format_rupiah($budget->total_plan)</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card animate-page-delay-1">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Terpakai</span>
-        <p class="text-xl font-bold text-violet-600 mt-1.5">Rp {{ number_format($budget->total_used, 0, ',', '.') }}</p>
+        <p class="text-xl font-bold text-violet-600 mt-1.5">@format_rupiah($budget->total_used)</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card animate-page-delay-2">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Reserved</span>
-        <p class="text-xl font-bold text-amber-600 mt-1.5">Rp {{ number_format($budget->total_reserved, 0, ',', '.') }}</p>
+        <p class="text-xl font-bold text-amber-600 mt-1.5">@format_rupiah($budget->total_reserved)</p>
     </div>
     <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-card animate-page-delay-2">
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Sisa</span>
         <p class="text-xl font-bold {{ $budget->remaining < 0 ? 'text-rose-600' : 'text-emerald-600' }} mt-1.5">
-            Rp {{ number_format($budget->remaining, 0, ',', '.') }}
+            @format_rupiah($budget->remaining)
         </p>
     </div>
 </div>

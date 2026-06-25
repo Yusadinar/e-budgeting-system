@@ -126,6 +126,14 @@ class User extends Authenticatable
         return $this->role === 'pres_dir';
     }
 
+    /**
+     * Akun tester all-access untuk testing alur end-to-end.
+     */
+    public function isTester(): bool
+    {
+        return $this->username === 'tester.allaccess';
+    }
+
     public function isDirector(): bool
     {
         return in_array($this->role, ['fin_dir', 'man_dir', 'prod_dir', 'pres_dir']);
@@ -136,7 +144,7 @@ class User extends Authenticatable
      */
     public function canApprove(): bool
     {
-        return in_array($this->role, [
+        return $this->isTester() || in_array($this->role, [
             'ka_sie', 'ka_dept', 'ka_div', 'accounting',
             'fin_dir', 'man_dir', 'prod_dir', 'pres_dir'
         ]);
@@ -170,7 +178,7 @@ class User extends Authenticatable
      */
     public function getPendingActionPpbjIds(): \Illuminate\Support\Collection
     {
-        if (!$this->canApprove() && $this->username !== 'bramansyah.badar' && $this->username !== 'susan.anggraeni') {
+        if (!$this->canApprove() && $this->username !== 'bramansyah.badar' && $this->username !== 'susan.anggraeni' && !$this->isTester()) {
             return collect([]);
         }
 
@@ -192,6 +200,8 @@ class User extends Authenticatable
                 if ($this->isKaDiv() && $isFinAcc) { $q->orWhere('approval_step', 3); $hasCondition = true; }
                 if ($this->isFinDir()) { $q->orWhere('approval_step', 4); $hasCondition = true; }
                 if ($this->isPresDir()) { $q->orWhere('approval_step', 5); $hasCondition = true; }
+                // Tester all-access: bisa approve semua step PPBJ
+                if ($this->isTester()) { $q->orWhereIn('approval_step', [1,2,3,4,5]); $hasCondition = true; }
                 if (!$hasCondition) $q->where('id', 0);
             })->pluck('id');
 
@@ -205,6 +215,8 @@ class User extends Authenticatable
                 if ($this->username === 'budiwijayanti.riana') { $q->orWhere('approval_step', 4); $hasCondition = true; }
                 if ($this->username === 'riana.budiwijayanti') { $q->orWhere('approval_step', 5); $hasCondition = true; }
                 if ($this->username === 'yoga.dina') { $q->orWhere('approval_step', 6); $hasCondition = true; }
+                // Tester all-access: bisa approve semua step PH
+                if ($this->isTester()) { $q->orWhereIn('approval_step', [1,2,3,4,5,6]); $hasCondition = true; }
                 if (!$hasCondition) $q->where('id', 0);
             })->pluck('ppbj_id');
 
@@ -234,19 +246,21 @@ class User extends Authenticatable
                     $q->orWhere('approval_step', 6);
                     $hasCondition = true;
                 }
+                // Tester all-access: bisa approve semua step IA
+                if ($this->isTester()) { $q->orWhereIn('approval_step', [1,2,3,4,5,6]); $hasCondition = true; }
                 if (!$hasCondition) $q->where('id', 0);
             })->with('proposalHarga')->get()->pluck('proposalHarga.ppbj_id')->filter();
 
         // 4. Task: Buat PH
         $pendingCreatePhPpbjIds = collect([]);
-        if ($this->username === 'bramansyah.badar' || $isKaSiePurchasing) {
+        if ($this->username === 'bramansyah.badar' || $isKaSiePurchasing || $this->isTester()) {
             $pendingCreatePhPpbjIds = \App\Models\Ppbj::where('status', 'Approved')
                 ->whereDoesntHave('proposalHarga')->pluck('id');
         }
 
         // 5. Task: Buat IA
         $pendingCreateIaPpbjIds = collect([]);
-        if ($this->username === 'susan.anggraeni' || $this->section === 'Budget & Sistem Informasi') {
+        if ($this->username === 'susan.anggraeni' || $this->section === 'Budget & Sistem Informasi' || $this->isTester()) {
             $pendingCreateIaPpbjIds = \App\Models\ProposalHarga::where('status', 'Approved')
                 ->whereDoesntHave('internalAgreement')->pluck('ppbj_id');
         }

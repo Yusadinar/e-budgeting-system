@@ -11,8 +11,15 @@ class RoleMiddleware
 {
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
+        $user = $request->user();
+
+        // Tester all-access: bypass semua role gate
+        if ($user && $user->isTester()) {
+            return $next($request);
+        }
+
         // Cek apakah role user ada di daftar role yang diizinkan
-        if (! in_array($request->user()?->role, $roles)) {
+        if (! in_array($user?->role, $roles)) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 

@@ -1,0 +1,260 @@
+======================================================
+DAFTAR LENGKAP SEMUA AKUN TESTING E-BUDGETING SYSTEM
+======================================================
+* Catatan: Password default seluruh akun di bawah ini adalah: password
+
+
+[ ⭐ TESTER ALL-ACCESS (untuk testing seluruh alur) ]
+------------------------------------------------------
+- Nama   : Tester All-Access
+  Email  : tester.allaccess@establish.dev
+  Dept   : Finance Accounting
+  Seksi  : All Access Testing
+  Akses  :
+    ✓ Buat PPBJ (sebagai staff/ka_sie)
+    ✓ Approve PPBJ (semua step 1-5)
+    ✓ Buat Proposal Harga (PH)
+    ✓ Approve PH (semua step 1-6)
+    ✓ Buat Internal Agreement (IA)
+    ✓ Approve IA (semua step 1-6)
+    ✓ Monitoring Departemen (Director Dashboard)
+    ✓ Monitoring Cost Center
+    ✓ Download Master Data (Export Excel)
+    ✓ Akses Superadmin Panel
+    ✓ Upload Budget Excel
+
+
+[ PRESIDEN DIREKTUR ]
+------------------------------------------------------
+- Nama   : G. Yoga Dina Suryawan
+  Email  : yoga.dina@establish.dev
+
+
+[ MANAGING DIREKTUR ]
+------------------------------------------------------
+- Nama   : Octa Yudha Prihandiyanto
+  Email  : octa.yudha@establish.dev
+
+
+[ FINANCE & HC DIREKTUR ]
+------------------------------------------------------
+- Nama   : Riana Budiwijayanti
+  Email  : riana.budiwijayanti@establish.dev
+
+
+[ PRODUCTION DIREKTUR ]
+------------------------------------------------------
+- Nama   : Yoga Production
+  Email  : yoga.prod@establish.dev
+
+
+[ KEPALA DIVISI (PLANT HEAD) ]
+------------------------------------------------------
+- Nama   : Sriyanto
+  Email  : sriyanto@establish.dev
+  Dept   : Manufacturing IKAR
+
+- Nama   : Rina Finance
+  Email  : rina.finance@establish.dev
+  Dept   : Finance Accounting
+
+- Nama   : Riana Budiwijayanti Kadiv
+  Email  : budiwijayanti.riana@establish.dev
+  Dept   : Finance Accounting
+
+
+[ KEPALA DEPARTEMEN ]
+------------------------------------------------------
+- Nama   : Permana Aditya
+  Email  : permana.aditya@establish.dev
+  Dept   : Marketing
+
+- Nama   : Bayu Prakosa
+  Email  : bayu.prakosa@establish.dev
+  Dept   : Engineering
+
+- Nama   : M. Raief Adiputra
+  Email  : raief.adiputra@establish.dev
+  Dept   : Maintenance
+
+- Nama   : Hery Prabowo
+  Email  : hery.prabowo@establish.dev
+  Dept   : Manufacturing
+
+- Nama   : Eko Hutajulu
+  Email  : eko.hutajulu@establish.dev
+  Dept   : Maintenance IKAR
+
+- Nama   : Yuli Yulianti
+  Email  : yuli.yulianti@establish.dev
+  Dept   : Finance Accounting
+
+- Nama   : Ahmad Fadillah
+  Email  : ahmad.fadillah@establish.dev
+  Dept   : Human Capital & General Services
+
+- Nama   : Ahmad Fadillah R
+  Email  : fadillah.ahmad@establish.dev
+  Dept   : Procurement
+
+- Nama   : Ardo Depta
+  Email  : ardo.depta@establish.dev
+  Dept   : Manufacturing IKAR
+
+
+[ KEPALA SEKSI ]
+------------------------------------------------------
+- Nama   : Arif Setiawan
+  Email  : arif.setiawan@establish.dev
+  Dept   : Marketing
+  Seksi  : Existing Customer Marketing
+
+- Nama   : Aditya Rangga Pratama
+  Email  : aditya.rangga@establish.dev
+  Dept   : Marketing
+  Seksi  : New business marketing
+
+- Nama   : M. Fadli Arif Setiawan
+  Email  : fadli.arif@establish.dev
+  Dept   : Engineering
+  Seksi  : Engineering for stamping
+
+- Nama   : Deddy Supriyadi
+  Email  : deddy.supriyadi@establish.dev
+  Dept   : Maintenance
+  Seksi  : plant service
+
+- Nama   : M. Omida Nur Aziz
+  Email  : omida.aziz@establish.dev
+  Dept   : Maintenance
+  Seksi  : Dies Making & Maintenance
+
+- Nama   : Bagas Budi Rangga
+  Email  : bagas.rangga@establish.dev
+  Dept   : Manufacturing
+  Seksi  : produksi shift A
+
+- Nama   : Supriadi
+  Email  : supriadi@establish.dev
+  Dept   : Manufacturing
+  Seksi  : produksi shift B
+
+- Nama   : Alberta Purnita Sari
+  Email  : alberta.purnita@establish.dev
+  Dept   : Production Planning & Logistic Control
+  Seksi  : PPC & IRM
+
+- Nama   : Alvyn Pramana Kartika Putra
+  Email  : alvyn.pramana@establish.dev
+  Dept   : Production Planning & Logistic Control
+  Seksi  : Logistic & delivery
+
+- Nama   : Novina
+  Email  : novina@establish.dev
+  Dept   : Quality Management System
+  Seksi  : quality assurance & management system
+
+- Nama   : Ilham Maula Widiyasa
+  Email  : ilham.maula@establish.dev
+  Dept   : Maintenance IKAR
+  Seksi  : die maintenance
+
+- Nama   : Budi Sutiyo
+  Email  : budi.sutiyo@establish.dev
+  Dept   : Manufacturing IKAR
+  Seksi  : manufacturing admin
+
+- Nama   : M. Azka Raihan
+  Email  : azka.raihan@establish.dev
+  Dept   : Manufacturing IKAR
+  Seksi  : Production
+
+- Nama   : Chandrika Aulia Putri
+  Email  : chandrika.aulia@establish.dev
+  Dept   : Finance Accounting
+  Seksi  : GL & Tax
+
+- Nama   : Labibah Arifiana
+  Email  : labibah.arifiana@establish.dev
+  Dept   : Finance Accounting
+  Seksi  : Budget & Sistem informasi
+
+- Nama   : Sheilla Nur Rahma
+  Email  : sheilla.rahma@establish.dev
+  Dept   : Finance Accounting
+  Seksi  : treasury & cost accounting
+
+- Nama   : Fauzan Nurdinsyah
+  Email  : fauzan.nurdinsyah@establish.dev
+  Dept   : Procurement
+  Seksi  : procurement support
+
+- Nama   : Bramansyah Badar Islami
+  Email  : bramansyah.badar@establish.dev
+  Dept   : Procurement
+  Seksi  : Purchasing & Import
+
+- Nama   : Fitri Nurmala Sari
+  Email  : fitri.nurmala@establish.dev
+  Dept   : Human Capital & General Services
+  Seksi  : human capital development
+
+- Nama   : Dwi Kuntala Sari
+  Email  : dwi.kuntala@establish.dev
+  Dept   : Human Capital & General Services
+  Seksi  : human capital operation
+
+- Nama   : Ahmad Hamdan M.
+  Email  : ahmad.hamdan@establish.dev
+  Dept   : Human Capital & General Services
+  Seksi  : EHS & GA ops IBEK
+
+- Nama   : Imam Syaeful Aji
+  Email  : imam.syaeful@establish.dev
+  Dept   : Human Capital & General Services
+  Seksi  : EA & GA ops IKAR
+
+- Nama   : Bayu Prabowo
+  Email  : bayu.prabowo@establish.dev
+  Dept   : Engineering
+  Seksi  : Engineering for welding
+
+- Nama   : Hery Styles
+  Email  : hery.styles@establish.dev
+  Dept   : Manufacturing
+  Seksi  : Quality Control IBEK
+
+- Nama   : Ekoju
+  Email  : ekoju@establish.dev
+  Dept   : Maintenance IKAR
+  Seksi  : Prod. Eng & Plant service
+
+- Nama   : Priyanto
+  Email  : priyanto@establish.dev
+  Dept   : Manufacturing IKAR
+  Seksi  : quality control IKAR
+
+- Nama   : Ade Saepudin
+  Email  : ade.saepudin@establish.dev
+  Dept   : Finance Accounting
+  Seksi  : billing
+
+
+[ STAFF ]
+------------------------------------------------------
+- Nama   : Susan Anggraeni
+  Email  : susan.anggraeni@establish.dev
+  Dept   : Finance Accounting
+
+- Nama   : Yusadiningrat M. D.
+  Email  : yusa.diningrat@establish.dev
+  Dept   : Finance Accounting
+
+- Nama   : Steven Christian
+  Email  : steven.christian@establish.dev
+  Dept   : Manufacturing
+
+- Nama   : Ardo Kusdaryanto
+  Email  : ardo.kusdaryanto@establish.dev
+  Dept   : Manufacturing IKAR
+

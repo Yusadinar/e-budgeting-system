@@ -72,15 +72,15 @@
         <div class="space-y-2 mb-4">
             <div class="flex justify-between text-xs">
                 <span class="text-slate-500">Pagu Anggaran</span>
-                <span class="font-semibold text-slate-700">Rp {{ number_format($plan, 0, ',', '.') }}</span>
+                <span class="font-semibold text-slate-700">@format_rupiah($plan)</span>
             </div>
             <div class="flex justify-between text-xs">
                 <span class="text-slate-500">Terpakai</span>
-                <span class="font-medium text-violet-600">Rp {{ number_format($used, 0, ',', '.') }}</span>
+                <span class="font-medium text-violet-600">@format_rupiah($used)</span>
             </div>
             <div class="flex justify-between text-xs">
                 <span class="text-slate-500">Sisa</span>
-                <span class="font-medium {{ $remaining < 0 ? 'text-rose-600' : 'text-emerald-600' }}">Rp {{ number_format($remaining, 0, ',', '.') }}</span>
+                <span class="font-medium {{ $remaining < 0 ? 'text-rose-600' : 'text-emerald-600' }}">@format_rupiah($remaining)</span>
             </div>
         </div>
 

@@ -261,7 +261,7 @@ class PengajuanController extends Controller
             ->first();
 
         // Pastikan Ka. Sie Purchasing yang membuat PH
-        $isKaSiePurchasing = $user->username === 'bramansyah.badar' || ($user->isKaSie() && $user->section === 'Purchasing & Import');
+        $isKaSiePurchasing = $user->isTester() || $user->username === 'bramansyah.badar' || ($user->isKaSie() && $user->section === 'Purchasing & Import');
         abort_if(!$isKaSiePurchasing, 403, 'Akses ditolak. Hanya Ka. Sie Purchasing yang dapat membuat Proposal Harga.');
         abort_if(!$ppbj->isApproved(), 403, 'PPBJ belum sepenuhnya disetujui.');
 
@@ -274,7 +274,7 @@ class PengajuanController extends Controller
     public function storePh(Request $request, Ppbj $ppbj): RedirectResponse
     {
         $user = Auth::user();
-        $isKaSiePurchasing = $user->username === 'bramansyah.badar' || ($user->isKaSie() && $user->section === 'Purchasing & Import');
+        $isKaSiePurchasing = $user->isTester() || $user->username === 'bramansyah.badar' || ($user->isKaSie() && $user->section === 'Purchasing & Import');
         abort_if(!$isKaSiePurchasing, 403, 'Akses ditolak. Hanya Ka. Sie Purchasing yang dapat membuat Proposal Harga.');
 
         $validated = $request->validate([
@@ -329,7 +329,7 @@ class PengajuanController extends Controller
     public function createIa(ProposalHarga $proposalHarga): View
     {
         $user = Auth::user();
-        $isBudgetStaff = $user->username === 'susan.anggraeni' || $user->section === 'Budget & Sistem Informasi';
+        $isBudgetStaff = $user->isTester() || $user->username === 'susan.anggraeni' || $user->section === 'Budget & Sistem Informasi';
         abort_if(!$isBudgetStaff, 403, 'Hanya Staff Budget & Sistem Informasi yang dapat membuat Internal Agreement.');
         abort_if(!$proposalHarga->isApproved(), 403, 'Proposal Harga belum sepenuhnya disetujui.');
 
@@ -342,7 +342,7 @@ class PengajuanController extends Controller
     public function storeIa(Request $request, ProposalHarga $proposalHarga): RedirectResponse
     {
         $user = Auth::user();
-        $isBudgetStaff = $user->username === 'susan.anggraeni' || $user->section === 'Budget & Sistem Informasi';
+        $isBudgetStaff = $user->isTester() || $user->username === 'susan.anggraeni' || $user->section === 'Budget & Sistem Informasi';
         abort_if(!$isBudgetStaff, 403, 'Hanya Staff Budget & Sistem Informasi yang dapat membuat Internal Agreement.');
 
         $validated = $request->validate([

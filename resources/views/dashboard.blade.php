@@ -58,8 +58,8 @@
 
     <x-stat-card
         title="Sisa Pagu"
-        value="Rp {{ number_format($sisaPagu, 0, ',', '.') }}"
-        subtitle="dari Rp {{ number_format($totalPlan, 0, ',', '.') }}"
+        value="@format_rupiah($sisaPagu)"
+        subtitle="dari @format_rupiah($totalPlan)"
         color="emerald"
         delay="animate-page">
         {{-- Icon slot --}}
@@ -70,7 +70,7 @@
 
     <x-stat-card
         title="Pengajuan Berjalan"
-        value="Rp {{ number_format($totalPengajuanBerjalan, 0, ',', '.') }}"
+        value="@format_rupiah($totalPengajuanBerjalan)"
         subtitle="Sedang dalam proses review"
         color="amber"
         delay="animate-page-delay-1">
@@ -81,7 +81,7 @@
 
     <x-stat-card
         title="Realisasi Selesai"
-        value="Rp {{ number_format($totalPengajuanSelesai, 0, ',', '.') }}"
+        value="@format_rupiah($totalPengajuanSelesai)"
         subtitle="IA sudah Approved & Closed"
         color="indigo"
         delay="animate-page-delay-2">

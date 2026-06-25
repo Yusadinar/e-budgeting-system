@@ -16,7 +16,7 @@ class ProposalHargaController extends Controller
     {
         $user = Auth::user();
 
-        $isKaSiePurchasing = $user->username === 'bramansyah.badar' || ($user->isKaSie() && $user->section === 'Purchasing & Import');
+        $isKaSiePurchasing = $user->isTester() || $user->username === 'bramansyah.badar' || ($user->isKaSie() && $user->section === 'Purchasing & Import');
         abort_if(!$isKaSiePurchasing, 403, 'Hanya Ka. Sie Purchasing yang dapat membuat Proposal Harga.');
         abort_if(!$ppbj->isApproved(), 403, 'PPBJ belum sepenuhnya disetujui.');
 
@@ -37,7 +37,7 @@ class ProposalHargaController extends Controller
     public function store(Request $request, Ppbj $ppbj)
     {
         $user = Auth::user();
-        $isKaSiePurchasing = $user->username === 'bramansyah.badar' || ($user->isKaSie() && $user->section === 'Purchasing & Import');
+        $isKaSiePurchasing = $user->isTester() || $user->username === 'bramansyah.badar' || ($user->isKaSie() && $user->section === 'Purchasing & Import');
         abort_if(!$isKaSiePurchasing, 403, 'Akses ditolak. Hanya Ka. Sie Purchasing yang dapat membuat PH.');
 
         $validated = $request->validate([

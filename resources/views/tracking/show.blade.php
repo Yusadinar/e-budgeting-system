@@ -233,7 +233,7 @@
                 </svg>
                 Preview PH
             </a>
-            @elseif($ppbj->isApproved() && (Auth::user()->username === 'bramansyah.badar' || (Auth::user()->isKaSie() && Auth::user()->section === 'Purchasing & Import')))
+            @elseif($ppbj->isApproved() && (Auth::user()->isTester() || Auth::user()->username === 'bramansyah.badar' || (Auth::user()->isKaSie() && Auth::user()->section === 'Purchasing & Import')))
             <a href="{{ route('pengajuan.create-ph', $ppbj->id) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-700 hover:text-amber-800 rounded-xl hover:bg-amber-100 transition-colors text-sm font-bold border border-amber-200">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
@@ -250,7 +250,7 @@
                 </svg>
                 Preview IA
             </a>
-            @elseif($ph && $ph->isApproved() && (Auth::user()->username === 'susan.anggraeni' || Auth::user()->section === 'Budget & Sistem Informasi'))
+            @elseif($ph && $ph->isApproved() && (Auth::user()->isTester() || Auth::user()->username === 'susan.anggraeni' || Auth::user()->section === 'Budget & Sistem Informasi'))
             <a href="{{ route('pengajuan.create-ia', $ph->id) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-700 hover:text-amber-800 rounded-xl hover:bg-amber-100 transition-colors text-sm font-bold border border-amber-200">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
@@ -334,7 +334,7 @@
     @php
         $isFinAcc = str_contains(strtolower(Auth::user()->department?->dept_name ?? ''), 'finance accounting');
         $isKaSiePurchasing = Auth::user()->isKaSie() && Auth::user()->section === 'Purchasing & Import';
-        $canActPpbj = match((int) $ppbj->approval_step) {
+        $canActPpbj = Auth::user()->isTester() || match((int) $ppbj->approval_step) {
             1 => Auth::user()->isKaDept() && $ppbj->user->dept_id === Auth::user()->dept_id,
             2 => $isKaSiePurchasing,
             3 => Auth::user()->isKaDiv() && $isFinAcc,
@@ -457,7 +457,7 @@
     {{-- Approval Actions PH --}}
     @if($ph && Auth::user()->canApprove() && $ph->status === 'In_Review')
     @php
-        $canActPh = match((int) $ph->approval_step) {
+        $canActPh = Auth::user()->isTester() || match((int) $ph->approval_step) {
             1 => Auth::user()->username === 'bramansyah.badar',
             2 => Auth::user()->username === 'fauzan.nurdinsyah',
             3 => Auth::user()->username === 'fadillah.ahmad',
@@ -584,7 +584,7 @@
     @php
         $submitter = $ia->proposalHarga->ppbj->user;
         $isFinAcc = str_contains(strtolower(Auth::user()->department?->dept_name ?? ''), 'finance accounting');
-        $canActIa = match((int) $ia->approval_step) {
+        $canActIa = Auth::user()->isTester() || match((int) $ia->approval_step) {
             1 => Auth::user()->isKaSie() && Auth::user()->dept_id === $submitter->dept_id && Auth::user()->section === $submitter->section,
             2 => Auth::user()->isKaDept() && $submitter->dept_id === Auth::user()->dept_id,
             3 => Auth::user()->isKaDiv() && $submitter->dept_id === Auth::user()->dept_id,
